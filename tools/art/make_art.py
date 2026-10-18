@@ -309,6 +309,40 @@ def make_slot():
     save_tga(img, "Slot")
 
 
+def make_connect6():
+    """Connect 6 pieces: a light wooden board, glossy stones and a rim.
+    Stones are drawn white/grey and tinted by faction in game."""
+    # Board: light, tileable wood (grain runs horizontally).
+    board = wood_strip(256, 256, (206, 164, 104), True, 11)
+    save_tga(board, "BoardWood")
+
+    # Stone: a shaded sphere with a highlight (64x64).
+    size = 64
+    stone = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    px = stone.load()
+    c, r = size / 2 - 0.5, size / 2 - 3
+    for y in range(size):
+        for x in range(size):
+            dx, dy = (x - c) / r, (y - c) / r
+            d2 = dx * dx + dy * dy
+            if d2 <= 1:
+                # light from the top-left
+                nz = math.sqrt(1 - d2)
+                light = max(0.0, (-dx * 0.45 - dy * 0.55 + nz * 0.7))
+                v = int(110 + 145 * min(1.0, light))
+                edge = 1 if d2 < 0.92 else max(0.0, (1 - d2) / 0.08)
+                px[x, y] = (v, v, v, int(255 * edge))
+    hl = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(hl).ellipse([16, 12, 30, 24], fill=(255, 255, 255, 200))
+    stone.alpha_composite(hl.filter(ImageFilter.GaussianBlur(2.5)))
+    save_tga(stone, "Stone")
+
+    # Rim drawn around a stone: gold or silver for seat 1 / seat 2.
+    rim = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(rim).ellipse([2, 2, size - 3, size - 3], outline=(255, 255, 255, 255), width=6)
+    save_tga(rim, "StoneRim")
+
+
 if __name__ == "__main__":
     os.makedirs(MEDIA, exist_ok=True)
     make_logo()
@@ -322,4 +356,5 @@ if __name__ == "__main__":
     make_ring()
     make_spark()
     make_slot()
+    make_connect6()
     print("Wrote textures to", MEDIA)

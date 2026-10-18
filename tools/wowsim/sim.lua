@@ -217,6 +217,7 @@ local function BuildEnv(client)
     env.UnitClass = function() return "Warrior", "WARRIOR", 1 end
     env.UnitRace = function() return "Orc", "Orc", 2 end
     env.wipe = function(t) for k in pairs(t) do t[k] = nil end return t end
+    table.wipe = env.wipe -- WoW adds table.wipe; ChatThrottleLib uses it
     env.floor, env.max, env.min = math.floor, math.max, math.min
     env.geterrorhandler = function() return function(err) error(err, 0) end end
     env.securecallfunction = function(fn, ...) return fn(...) end

@@ -1,0 +1,16 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r - Connect 6
+## Notes: Connect 6 for Goblin Games: a 19x19 board, two stones a turn, six in a row wins.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Gem_Pearl_04
+## Category: Miscellaneous
+## Group: GoblinGames
+## X-Curse-Project-ID: 000000
+## LoadOnDemand: 1
+## Dependencies: GoblinGames
+
+# Loaded by the core the first time someone hosts, joins or practices
+# Connect 6 (C_AddOns.LoadAddOn). Nothing here runs at login.
+
+Connect6.lua

@@ -4,8 +4,9 @@ Every game is its own Load-On-Demand addon that plugs into the core. The core
 handles invites, networking, turns, timers, stats, theming and the window; a
 module only supplies its rules, its board, and its message handlers.
 
-`GoblinGames_TicTacToe/TicTacToe.lua` is the reference implementation. Copy it
-when starting a new game.
+`GoblinGames_TicTacToe/TicTacToe.lua` is the simplest reference implementation;
+`GoblinGames_Connect6/Connect6.lua` shows multi-action turns, a side panel,
+a compact header and a smarter bot. Copy one when starting a new game.
 
 ## 1. Files
 
@@ -64,6 +65,7 @@ GG:RegisterGame(Game)            -- last line of the file
 | `OnSessionClosed(session)` | everyone | The session is gone. Hide your board. |
 | `BotAction(session, botName)` | host | Practice games only: it's the bot's turn. Pick a move and call `session:ActAs(botName, op, ...)`. Defining this enables the **Practice** button. |
 | `turnTimer` (field, not a function) | | Override the turn length in seconds (`0` = no timer). If unset, the host's setting is used. |
+| `compactHeader` (field) | | `true` for big boards: hides the name plates and puts the status line and timer in one thin row (Connect 6 uses it). |
 | `hint` (field) | | What the goblin says when it's your turn, e.g. `"Click an empty slot. Three in a row wins!"` |
 
 **Every value in `args` is a string.** Convert with `tonumber()`. Booleans

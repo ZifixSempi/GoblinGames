@@ -5,12 +5,12 @@ guild while you wait for queues, a raid to form, or guild night to start.
 Frames are themed Horde or Alliance, and every piece shows its owner's faction
 crest.
 
-**Status:** Milestone 1 (core + Tic-Tac-Toe). Other games show as "Coming soon".
+**Status:** Milestone 2 (core, Tic-Tac-Toe, Connect 6). Other games show as "Coming soon".
 
 | Game | Players | Status |
 |---|---|---|
 | Tic-Tac-Toe | 2 | ✅ |
-| Connect 6 | 2 | planned |
+| Connect 6 | 2 | ✅ |
 | Deathroll | 2+ | planned |
 | Guild Bingo | any | planned |
 | Go Fish | 2–6 | planned |
@@ -55,7 +55,8 @@ GoblinGames/             core addon (lobby, comms, turns, UI, theming, stats)
   UI/                    windows and widgets
   Media/                 textures (.tga) and the title font
   Libs/                  LibStub, CallbackHandler, AceComm (+ChatThrottleLib), AceDB
-GoblinGames_TicTacToe/   a game module (Load-On-Demand)
+GoblinGames_TicTacToe/   game modules (Load-On-Demand)
+GoblinGames_Connect6/
 tools/art/               art generator, logo SVG, CurseForge logo
 tools/wowsim/            headless WoW simulator + tests
 docs/MODULE_API.md       how to write a game module
@@ -65,9 +66,12 @@ docs/MODULE_API.md       how to write a game module
 
 ## Developing
 
-Copy (or symlink) `GoblinGames` and `GoblinGames_TicTacToe` into
+Copy (or symlink) `GoblinGames` and the `GoblinGames_*` game folders into
 `World of Warcraft\_retail_\Interface\AddOns\` (or `_classic_`, `_classic_era_`),
 then `/reload` after each change. Turn on `/gg debug` to see every message.
+
+Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua` and
+`lua5.1 tools/wowsim/test_connect6.lua`.
 
 To add a game, read [docs/MODULE_API.md](docs/MODULE_API.md).
 

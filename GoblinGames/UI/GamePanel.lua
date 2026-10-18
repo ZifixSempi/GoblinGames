@@ -81,9 +81,29 @@ function UI:RefreshGamePanel()
     local s = GG.Lobby.active
     if not s or s.status == "lobby" then return end
 
+    -- Big boards (Connect 6) ask for a compact header: no name plates, the
+    -- status on the left and the fuse on the right, so the board gets the room.
+    local compact = s.def and s.def.compactHeader
+    if compact ~= panel.compact then
+        panel.compact = compact
+        statusText:ClearAllPoints()
+        fuse:ClearAllPoints()
+        area:ClearAllPoints()
+        if compact then
+            statusText:SetPoint("TOPLEFT", 4, -2)
+            fuse:SetPoint("TOPRIGHT", -4, -8)
+            area:SetPoint("TOPLEFT", 0, -30)
+        else
+            statusText:SetPoint("TOP", 0, -64)
+            fuse:SetPoint("TOP", vsText, "BOTTOM", 0, -2)
+            area:SetPoint("TOPLEFT", 0, -90)
+        end
+        area:SetPoint("BOTTOMRIGHT", 0, 0)
+    end
+
     -- Name plates: two players face off left vs right; more players line up.
     local current = GG.Turns:Current(s)
-    local count = math.min(#s.players, 4)
+    local count = compact and 0 or math.min(#s.players, 4)
     for i = 1, count do
         local name = s.players[i]
         local plate = plates[i]
@@ -115,6 +135,7 @@ function UI:RefreshGamePanel()
     end
     for i = count + 1, #plates do plates[i]:Hide() end
     vsText:SetShown(count == 2)
+    statusText:SetJustifyH(compact and "LEFT" or "CENTER")
 
     -- Status line.
     local text

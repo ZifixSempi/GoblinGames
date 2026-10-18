@@ -20,7 +20,7 @@ local _, GG = ...
 GG.CATALOG = {
     { id = "tictactoe",   addon = "GoblinGames_TicTacToe",   name = "Tic-Tac-Toe",   min = 2, max = 2, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Note_02",       desc = "Three in a row, with faction crests." },
-    { id = "connect6",    addon = "GoblinGames_Connect6",    name = "Connect 6",     min = 2, max = 2,
+    { id = "connect6",    addon = "GoblinGames_Connect6",    name = "Connect 6",     min = 2, max = 2, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Gem_Pearl_04",  desc = "19x19 board, two stones a turn, six in a row wins." },
     { id = "deathroll",   addon = "GoblinGames_Deathroll",   name = "Deathroll",     min = 2, max = 40,
       icon = "Interface\\Icons\\INV_Misc_Bone_HumanSkull_01", desc = "/roll down from 1000. Whoever rolls 1 loses." },
