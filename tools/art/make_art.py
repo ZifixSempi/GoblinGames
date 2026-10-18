@@ -62,10 +62,10 @@ def make_logo():
     defs = re.search(r"<defs>.*?</defs>", svg, re.S).group(0)
     face = re.search(r"<!-- Ears -->.*?(?=<!-- Die)", svg, re.S).group(0)
     # Wide crop with the ear tips (256x128), and a square face crop for icons.
-    wide = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 100 496 248">' + defs + face + "</svg>")
+    wide = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-28 52 568 284">' + defs + face + "</svg>")
     png = cairosvg.svg2png(bytestring=wide.encode(), output_width=256, output_height=128)
     save_tga(Image.open(io.BytesIO(png)).convert("RGBA"), "GoblinHead")
-    square = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="138 100 236 236">' + defs + face + "</svg>")
+    square = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="112 52 288 288">' + defs + face + "</svg>")
     save_tga(svg_to_image(square, 64), "GoblinFace")
 
     coin = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 80 80">' + defs +

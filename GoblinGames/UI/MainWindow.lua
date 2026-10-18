@@ -141,9 +141,13 @@ local function BuildWindow()
     tagline:SetTextColor(0.95, 0.85, 0.6)
     frame.tagline = tagline
 
-    local close = CreateFrame("Button", nil, border, "UIPanelCloseButton")
+    -- The close button must be a child of the window itself: Blizzard's
+    -- UIPanelCloseButton hides its *parent* when clicked. We raise its frame
+    -- level so it still draws on top of the wooden border.
+    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -8, -8)
     close:SetFrameLevel(border:GetFrameLevel() + 6)
+    close:SetScript("OnClick", function() frame:Hide() end)
 
     local function PaintTitle()
         local c = GG.Theme:GetPalette().title
