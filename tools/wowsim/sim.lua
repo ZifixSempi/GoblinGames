@@ -1,7 +1,7 @@
 --[[----------------------------------------------------------------------------
   tools/wowsim/sim.lua  (developer tool, not shipped in the addon zip)
 
-  A tiny fake World of Warcraft for testing GuildGames logic outside the game.
+  A tiny fake World of Warcraft for testing GoblinGames logic outside the game.
   It runs several "clients" side by side in one Lua 5.1 process. Each client
   gets its own global environment, loads the real addon files, and exchanges
   addon messages with the others through a fake server.
@@ -366,8 +366,8 @@ end
 Sim.allowNil = {
     Settings = true, InterfaceOptionsFrame = true, SettingsPanel = true, C_Texture = true,
     GetAddOnMetadata = true, LoadAddOn = true, IsAddOnLoaded = true, GetAddOnInfo = true,
-    C_BattleNet = true, ChatThrottleLib = true, LibStub = true, GuildGames = true,
-    GuildGamesDB = true, AceComm = true, C_GameRules = true, RegionalUniqueNamesEnabled = true,
+    C_BattleNet = true, ChatThrottleLib = true, LibStub = true, GoblinGames = true,
+    GoblinGamesDB = true, AceComm = true, C_GameRules = true, RegionalUniqueNamesEnabled = true,
     RegisterAddonMessagePrefix = true, issecretvalue = true, CallbackHandler = true, LoadSavedVariablesFirst = true,
 }
 
@@ -436,7 +436,7 @@ function Sim.Login(client, mainAddons)
     for _, addon in ipairs(mainAddons) do Sim.LoadAddon(client, addon) end
     Sim.FireEvent(client, "PLAYER_LOGIN")
     Sim.FireEvent(client, "PLAYER_ENTERING_WORLD", true, false)
-    client.GG = client.env.GuildGames
+    client.GG = client.env.GoblinGames
 end
 
 function Sim.Chat(client, pattern)

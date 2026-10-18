@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Init.lua
+  GoblinGames/Core/Init.lua
 
   Creates the addon namespace, the event dispatcher and the internal
   callback system. Every other file in the core gets the same namespace table
@@ -7,14 +7,14 @@
 
       local ADDON_NAME, GG = ...
 
-  Game modules are *separate addons* (GuildGames_TicTacToe etc.), so they do
+  Game modules are *separate addons* (GoblinGames_TicTacToe etc.), so they do
   not receive this private table. That's why we also publish it as the global
-  `GuildGames`. Modules should only use the functions documented in
+  `GoblinGames`. Modules should only use the functions documented in
   docs/MODULE_API.md.
 ------------------------------------------------------------------------------]]
 
 local ADDON_NAME, GG = ...
-_G.GuildGames = GG
+_G.GoblinGames = GG
 
 GG.name = ADDON_NAME
 
@@ -37,7 +37,7 @@ GG.isClassic = not GG.isRetail
 -------------------------------------------------------------------------------
 -- Printing
 -------------------------------------------------------------------------------
-local PREFIX = "|cffd4af37Guild|r|cffff6b4aGames|r: "
+local PREFIX = "|cff6fdc4fGoblin|r|cffd4af37Games|r: "
 
 --- Print a message to the default chat frame (only the local player sees it).
 function GG:Print(...)

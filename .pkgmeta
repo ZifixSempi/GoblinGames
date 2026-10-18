@@ -5,18 +5,18 @@
 # the whole repo into a folder named after `package-as`, then `move-folders`
 # lifts each addon folder out to the top level of the zip, so players get:
 #
-#   GuildGames/
-#   GuildGames_TicTacToe/
+#   GoblinGames/
+#   GoblinGames_TicTacToe/
 #
 # When you add a game module, add its folder here too.
 
-package-as: GuildGames
+package-as: GoblinGames
 
 move-folders:
-  GuildGames/GuildGames: GuildGames
-  GuildGames/GuildGames_TicTacToe: GuildGames_TicTacToe
+  GoblinGames/GoblinGames: GoblinGames
+  GoblinGames/GoblinGames_TicTacToe: GoblinGames_TicTacToe
 
-# Libraries are committed under GuildGames/Libs, so no externals are needed.
+# Libraries are committed under GoblinGames/Libs, so no externals are needed.
 
 ignore:
   - docs

@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/GamesPanel.lua
+  GoblinGames/UI/GamesPanel.lua
 
   The game picker: one tile per game in the catalog. Installed games get
   "Host" and "Practice" buttons; the rest say "Coming soon".

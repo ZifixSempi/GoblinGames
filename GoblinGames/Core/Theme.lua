@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Theme.lua
+  GoblinGames/Core/Theme.lua
 
   Horde / Alliance / Neutral look and sounds.
 

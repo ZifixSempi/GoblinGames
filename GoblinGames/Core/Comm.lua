@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Comm.lua
+  GoblinGames/Core/Comm.lua
 
   Networking between players' clients.
 
@@ -30,7 +30,7 @@ local Comm = {}
 GG.Comm = Comm
 LibStub("AceComm-3.0"):Embed(Comm)
 
-Comm.PREFIX = "GuildGames"   -- max 16 characters
+Comm.PREFIX = "GoblinGames"   -- max 16 characters
 
 local SEP = "^"
 
@@ -179,7 +179,7 @@ function Comm:OnCommReceived(prefix, message, channel, sender)
     if protocol ~= GG.PROTOCOL then
         if protocol > GG.PROTOCOL and not warnedNewer[sender] then
             warnedNewer[sender] = true
-            GG:Print(GG.Util.ShortName(sender) .. " has a newer GuildGames. Update yours to play with them.")
+            GG:Print(GG.Util.ShortName(sender) .. " has a newer GoblinGames. Update yours to play with them.")
         end
         -- Still answer pings and decline invites so the other side isn't left waiting.
         if op ~= "PING" and op ~= "INV" and op ~= "@INV" then return end

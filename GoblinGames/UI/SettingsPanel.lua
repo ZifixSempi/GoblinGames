@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/SettingsPanel.lua
+  GoblinGames/UI/SettingsPanel.lua
 
   Settings inside our own window, plus a small entry in Blizzard's AddOns
   options (Esc > Options > AddOns) that opens it.
@@ -71,19 +71,19 @@ end)
 -------------------------------------------------------------------------------
 table.insert(GG.onLogin, function()
     local canvas = CreateFrame("Frame")
-    canvas.name = "GuildGames"
-    local text = UI.Label(canvas, "GuildGames settings live in the addon's own window.", "GameFontHighlight")
+    canvas.name = "GoblinGames"
+    local text = UI.Label(canvas, "GoblinGames settings live in the addon's own window.", "GameFontHighlight")
     text:SetPoint("TOPLEFT", 16, -16)
     -- We deliberately don't close Blizzard's options window from code: hiding
     -- Blizzard panels from an addon is a classic source of taint. Our window
     -- uses the DIALOG strata, so it opens on top of it instead.
-    local open = UI.Button(canvas, "Open GuildGames", 160, 26, function()
+    local open = UI.Button(canvas, "Open GoblinGames", 160, 26, function()
         UI:ShowPanel("settings")
     end)
     open:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -12)
 
     if Settings and Settings.RegisterCanvasLayoutCategory then
-        local category = Settings.RegisterCanvasLayoutCategory(canvas, "GuildGames")
+        local category = Settings.RegisterCanvasLayoutCategory(canvas, "GoblinGames")
         Settings.RegisterAddOnCategory(category)
     elseif InterfaceOptions_AddCategory then
         InterfaceOptions_AddCategory(canvas)

@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Slash.lua
+  GoblinGames/Slash.lua
 
   Slash commands. WoW finds them through globals named SLASH_<KEY>1, 2 ...
   and the handler in SlashCmdList["<KEY>"].
@@ -11,7 +11,7 @@
     /gg start               start your lobby
     /gg leave               leave your lobby or forfeit the current game
     /gg accept | decline    answer the newest invite
-    /gg who                 list group and guild members who have GuildGames
+    /gg who                 list group and guild members who have GoblinGames
     /gg stats | settings    open those panels
     /gg debug               print every addon message sent and received
 ------------------------------------------------------------------------------]]
@@ -54,7 +54,7 @@ local function Help()
         "/gg invite <name> - invite a player to your lobby",
         "/gg start - start your lobby   /gg leave - leave or forfeit",
         "/gg accept | decline - answer the newest invite",
-        "/gg who - who in your group or guild has GuildGames",
+        "/gg who - who in your group or guild has GoblinGames",
         "/gg stats | settings | debug",
     }
     for _, line in ipairs(lines) do DEFAULT_CHAT_FRAME:AddMessage("   " .. line) end
@@ -132,7 +132,7 @@ commands.who = function()
         if #names == 0 then
             GG:Print("Nobody else answered.")
         else
-            GG:Print(#names .. " with GuildGames: " .. table.concat(names, ", "))
+            GG:Print(#names .. " with GoblinGames: " .. table.concat(names, ", "))
         end
     end)
 end
@@ -149,9 +149,9 @@ end
 
 commands.help = Help
 
-SLASH_GUILDGAMES1 = "/gg"
-SLASH_GUILDGAMES2 = "/guildgames"
-SlashCmdList.GUILDGAMES = function(msg)
+SLASH_GOBLINGAMES1 = "/gg"
+SLASH_GOBLINGAMES2 = "/goblingames"
+SlashCmdList.GOBLINGAMES = function(msg)
     local cmd, arg = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = (cmd or ""):lower()
     if cmd == "" then

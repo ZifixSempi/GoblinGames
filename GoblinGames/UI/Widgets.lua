@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/Widgets.lua
+  GoblinGames/UI/Widgets.lua
 
   Small building blocks for our windows, all created in Lua with CreateFrame.
 

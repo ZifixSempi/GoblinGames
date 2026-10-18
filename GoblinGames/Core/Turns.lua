@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Turns.lua
+  GoblinGames/Core/Turns.lua
 
   Whose turn it is, turn timers, and what happens when someone stalls.
 

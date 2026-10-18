@@ -1,41 +1,41 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Modules.lua
+  GoblinGames/Core/Modules.lua
 
   The game catalog and the module registry.
 
   Each game lives in its own Load-On-Demand addon (## LoadOnDemand: 1). WoW
-  doesn't load those at login; we call C_AddOns.LoadAddOn("GuildGames_X") the
+  doesn't load those at login; we call C_AddOns.LoadAddOn("GoblinGames_X") the
   first time the game is needed. That keeps memory low for people who only
   ever play one or two games.
 
   Because a module isn't loaded until it's needed, the core keeps a static
   CATALOG so the game picker can list every game without loading anything.
-  When a module loads, it calls GuildGames:RegisterGame(def) to plug its rules
+  When a module loads, it calls GoblinGames:RegisterGame(def) to plug its rules
   and UI into the core. See docs/MODULE_API.md for the full definition.
 ------------------------------------------------------------------------------]]
 
 local _, GG = ...
 
 GG.CATALOG = {
-    { id = "tictactoe",   addon = "GuildGames_TicTacToe",   name = "Tic-Tac-Toe",   min = 2, max = 2,
+    { id = "tictactoe",   addon = "GoblinGames_TicTacToe",   name = "Tic-Tac-Toe",   min = 2, max = 2,
       icon = "Interface\\Icons\\INV_Misc_Note_02",       desc = "Three in a row, with faction crests." },
-    { id = "connect6",    addon = "GuildGames_Connect6",    name = "Connect 6",     min = 2, max = 2,
+    { id = "connect6",    addon = "GoblinGames_Connect6",    name = "Connect 6",     min = 2, max = 2,
       icon = "Interface\\Icons\\INV_Misc_Gem_Pearl_04",  desc = "19x19 board, two stones a turn, six in a row wins." },
-    { id = "deathroll",   addon = "GuildGames_Deathroll",   name = "Deathroll",     min = 2, max = 40,
+    { id = "deathroll",   addon = "GoblinGames_Deathroll",   name = "Deathroll",     min = 2, max = 40,
       icon = "Interface\\Icons\\INV_Misc_Bone_HumanSkull_01", desc = "/roll down from 1000. Whoever rolls 1 loses." },
-    { id = "bingo",       addon = "GuildGames_Bingo",       name = "Guild Bingo",   min = 1, max = 1000,
+    { id = "bingo",       addon = "GoblinGames_Bingo",       name = "Guild Bingo",   min = 1, max = 1000,
       icon = "Interface\\Icons\\INV_Misc_Ticket_Darkmoon_01", desc = "Officer-hosted prize nights." },
-    { id = "gofish",      addon = "GuildGames_GoFish",      name = "Go Fish",       min = 2, max = 6,
+    { id = "gofish",      addon = "GoblinGames_GoFish",      name = "Go Fish",       min = 2, max = 6,
       icon = "Interface\\Icons\\INV_Misc_Fish_02",       desc = "Collect sets of four." },
-    { id = "crazyeights", addon = "GuildGames_CrazyEights", name = "Crazy Eights",  min = 2, max = 6,
+    { id = "crazyeights", addon = "GoblinGames_CrazyEights", name = "Crazy Eights",  min = 2, max = 6,
       icon = "Interface\\Icons\\INV_Misc_Note_01", desc = "Match suit or rank. Eights are wild." },
-    { id = "blackjack",   addon = "GuildGames_Blackjack",   name = "Blackjack",     min = 2, max = 8,
+    { id = "blackjack",   addon = "GoblinGames_Blackjack",   name = "Blackjack",     min = 2, max = 8,
       icon = "Interface\\Icons\\INV_Misc_Coin_02",       desc = "Beat the host's dealer hand to 21." },
-    { id = "poker",       addon = "GuildGames_Poker",       name = "Poker",         min = 2, max = 8,
+    { id = "poker",       addon = "GoblinGames_Poker",       name = "Poker",         min = 2, max = 8,
       icon = "Interface\\Icons\\INV_Misc_Coin_17",       desc = "Texas Hold'em with chips." },
-    { id = "liarsdice",   addon = "GuildGames_LiarsDice",   name = "Liar's Dice",   min = 2, max = 6,
+    { id = "liarsdice",   addon = "GoblinGames_LiarsDice",   name = "Liar's Dice",   min = 2, max = 6,
       icon = "Interface\\Icons\\INV_Misc_Dice_01",       desc = "Bid on hidden dice, or call Liar!" },
-    { id = "trivia",      addon = "GuildGames_Trivia",      name = "Trivia",        min = 1, max = 1000,
+    { id = "trivia",      addon = "GoblinGames_Trivia",      name = "Trivia",        min = 1, max = 1000,
       icon = "Interface\\Icons\\INV_Misc_Book_09",       desc = "Fastest correct lore answer scores." },
 }
 

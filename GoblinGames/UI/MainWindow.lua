@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/MainWindow.lua
+  GoblinGames/UI/MainWindow.lua
 
   The main window: title bar, a navigation column on the left and one content
   panel at a time on the right (Games, Lobby, Game, Stats, Settings).
@@ -30,7 +30,7 @@ local frame
 local function BuildWindow()
     -- The global name is what UISpecialFrames needs: frames listed there
     -- close when the player presses Escape.
-    frame = CreateFrame("Frame", "GuildGamesMainFrame", UIParent, UI.BACKDROP)
+    frame = CreateFrame("Frame", "GoblinGamesMainFrame", UIParent, UI.BACKDROP)
     GG.Theme:ApplyFrame(frame)
     frame:SetSize(WIDTH, HEIGHT)
     frame:SetFrameStrata("DIALOG")
@@ -51,7 +51,7 @@ local function BuildWindow()
         frame:SetPoint("CENTER")
     end
     frame:Hide()
-    table.insert(UISpecialFrames, "GuildGamesMainFrame")
+    table.insert(UISpecialFrames, "GoblinGamesMainFrame")
 
     -- Title: our crest and name.
     local crest = frame:CreateTexture(nil, "ARTWORK")
@@ -71,7 +71,7 @@ local function BuildWindow()
 
     local function PaintTitle()
         GG.Theme:SetCrest(crest, GG.Theme:GetThemeFaction())
-        title:SetText(GG.Theme:TitleText("GuildGames"))
+        title:SetText(GG.Theme:TitleText("GoblinGames"))
     end
     PaintTitle()
     GG.RegisterCallback(frame, "THEME_CHANGED", PaintTitle)

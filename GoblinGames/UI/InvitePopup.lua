@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/InvitePopup.lua
+  GoblinGames/UI/InvitePopup.lua
 
   The "X invites you to play Y" box at the top of the screen.
 
@@ -24,7 +24,7 @@ local function NextInvite()
 end
 
 local function Build()
-    popup = CreateFrame("Frame", "GuildGamesInvitePopup", UIParent, UI.BACKDROP)
+    popup = CreateFrame("Frame", "GoblinGamesInvitePopup", UIParent, UI.BACKDROP)
     GG.Theme:ApplyFrame(popup)
     popup:SetSize(340, 112)
     popup:SetPoint("TOP", 0, -140)

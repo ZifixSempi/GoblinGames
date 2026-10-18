@@ -1,21 +1,21 @@
 --[[----------------------------------------------------------------------------
-  GuildGames_TicTacToe/TicTacToe.lua
+  GoblinGames_TicTacToe/TicTacToe.lua
 
-  Tic-Tac-Toe, and the reference example of a GuildGames module.
+  Tic-Tac-Toe, and the reference example of a GoblinGames module.
   Read this alongside docs/MODULE_API.md: every module follows this shape.
 
     1. Describe the game in a table (`Game`) with callback functions.
     2. Keep all game state in session.data.
     3. Host side:   OnAction checks a move  -> session:Broadcast(...) the result.
     4. Every side:  OnState applies a broadcast -> redraw.
-    5. Register:    GuildGames:RegisterGame(Game)
+    5. Register:    GoblinGames:RegisterGame(Game)
 
   Pieces are faction crests. Each mark shows the crest of the player who
   placed it ("mixed" mode). If both players share a faction, the coloured ring
   tells them apart: gold for seat 1, silver for seat 2.
 ------------------------------------------------------------------------------]]
 
-local GG = GuildGames          -- the core's public API (a global set by GuildGames)
+local GG = GoblinGames          -- the core's public API (a global set by GoblinGames)
 local Util = GG.Util
 local UI = GG.UI
 

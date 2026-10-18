@@ -1,38 +1,38 @@
-# GuildGames module API
+# GoblinGames module API
 
 Every game is its own Load-On-Demand addon that plugs into the core. The core
 handles invites, networking, turns, timers, stats, theming and the window; a
 module only supplies its rules, its board, and its message handlers.
 
-`GuildGames_TicTacToe/TicTacToe.lua` is the reference implementation. Copy it
+`GoblinGames_TicTacToe/TicTacToe.lua` is the reference implementation. Copy it
 when starting a new game.
 
 ## 1. Files
 
 ```
-GuildGames_MyGame/
-    GuildGames_MyGame.toc
+GoblinGames_MyGame/
+    GoblinGames_MyGame.toc
     MyGame.lua
 ```
 
 ```toc
 ## Interface: 120105, 50504, 38002, 20506, 11509
-## Title: |cffd4af37Guild|r|cffff6b4aGames|r - My Game
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r - My Game
 ## Notes: One line describing the game.
 ## Author: Zifix
 ## Version: @project-version@
 ## IconTexture: Interface\Icons\INV_Misc_Dice_01
-## Group: GuildGames
+## Group: GoblinGames
 ## X-Curse-Project-ID: 000000
 ## LoadOnDemand: 1
-## Dependencies: GuildGames
+## Dependencies: GoblinGames
 
 MyGame.lua
 ```
 
 Then:
 
-1. Add an entry for the game to `GG.CATALOG` in `GuildGames/Core/Modules.lua`
+1. Add an entry for the game to `GG.CATALOG` in `GoblinGames/Core/Modules.lua`
    (id, addon folder name, display name, min/max players, icon, description).
    The game picker reads the catalog, so the game shows up without its module
    being loaded.
@@ -41,7 +41,7 @@ Then:
 ## 2. Registering
 
 ```lua
-local GG = GuildGames            -- global published by the core
+local GG = GoblinGames            -- global published by the core
 local Game = { id = "mygame" }   -- must match the catalog id
 
 function Game.OnSessionStart(session) ... end   -- required

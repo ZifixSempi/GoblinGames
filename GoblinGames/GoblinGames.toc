@@ -1,5 +1,5 @@
 ## Interface: 120105, 50504, 38002, 20506, 11509
-## Title: |cffd4af37Guild|r|cffff6b4aGames|r
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r
 ## Notes: Play quick games with your party, raid or guild while you wait: queues, raid forming and guild nights.
 ## Author: Zifix
 ## Version: @project-version@
@@ -7,13 +7,13 @@
 ## Category: Miscellaneous
 ## X-Curse-Project-ID: 000000
 ## X-Website: https://github.com/ZifixSempi/goblingames
-## SavedVariables: GuildGamesDB
-## AddonCompartmentFunc: GuildGames_OnAddonCompartmentClick
-## AddonCompartmentFuncOnEnter: GuildGames_OnAddonCompartmentEnter
-## AddonCompartmentFuncOnLeave: GuildGames_OnAddonCompartmentLeave
+## SavedVariables: GoblinGamesDB
+## AddonCompartmentFunc: GoblinGames_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: GoblinGames_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: GoblinGames_OnAddonCompartmentLeave
 
 # ---------------------------------------------------------------------------
-# GuildGames core. Files load top to bottom, so the order below matters:
+# GoblinGames core. Files load top to bottom, so the order below matters:
 # libraries first, then the namespace (Init), then everything that uses it.
 #
 # The Interface line lists every client we support (comma-separated values

@@ -1,16 +1,16 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Database.lua
+  GoblinGames/Core/Database.lua
 
-  SavedVariables: everything in the global `GuildGamesDB` is written to
-  WTF\Account\<ACCOUNT>\SavedVariables\GuildGames.lua when you log out or
+  SavedVariables: everything in the global `GoblinGamesDB` is written to
+  WTF\Account\<ACCOUNT>\SavedVariables\GoblinGames.lua when you log out or
   /reload, and read back the next time the addon loads.
 
   Layout (managed by AceDB):
-    GuildGamesDB.global        shared by every character on the account
+    GoblinGamesDB.global        shared by every character on the account
         .schemaVersion         which migrations have run (see below)
         .bingoLog              Guild Bingo winner log (Milestone 4)
-    GuildGamesDB.profiles      settings (theme, sounds, minimap ...)
-    GuildGamesDB.char["Name - Realm"]
+    GoblinGamesDB.profiles      settings (theme, sounds, minimap ...)
+    GoblinGamesDB.char["Name - Realm"]
         .stats[gameId]         { wins, losses, draws, opponents = { [name] = {w,l,d} } }
 
   ---------------------------------------------------------------------------
@@ -90,14 +90,14 @@ local function RunMigrations(raw)
 end
 
 table.insert(GG.onLoad, function()
-    -- GuildGamesDB is nil on first install; create it so migrations can run.
-    GuildGamesDB = GuildGamesDB or {}
-    RunMigrations(GuildGamesDB)
+    -- GoblinGamesDB is nil on first install; create it so migrations can run.
+    GoblinGamesDB = GoblinGamesDB or {}
+    RunMigrations(GoblinGamesDB)
 
     -- AceDB wraps the raw table and fills in defaults on read, without
     -- writing defaults back to disk (keeps the saved file small).
     -- `true` = use the shared "Default" profile on every character.
-    GG.db = LibStub("AceDB-3.0"):New("GuildGamesDB", defaults, true)
+    GG.db = LibStub("AceDB-3.0"):New("GoblinGamesDB", defaults, true)
 end)
 
 -------------------------------------------------------------------------------

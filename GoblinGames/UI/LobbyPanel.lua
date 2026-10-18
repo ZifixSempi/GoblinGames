@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/LobbyPanel.lua
+  GoblinGames/UI/LobbyPanel.lua
 
   The lobby before a game starts.
     Host:  invite group members, your target, or anyone by name; see who has

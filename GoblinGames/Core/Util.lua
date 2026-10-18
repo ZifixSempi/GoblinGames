@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Util.lua
+  GoblinGames/Core/Util.lua
 
   Small helpers used everywhere: player names, tables, randomness.
 

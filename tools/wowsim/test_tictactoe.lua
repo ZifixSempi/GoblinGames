@@ -7,7 +7,7 @@ local Sim = require("sim")
 Sim.verbose = os.getenv("VERBOSE") ~= nil
 
 local ROOT = "."
-local ADDONS = { "GuildGames", "GuildGames_TicTacToe" }
+local ADDONS = { "GoblinGames", "GoblinGames_TicTacToe" }
 local passed, failed = 0, 0
 
 local function check(cond, label)
@@ -33,8 +33,8 @@ math.randomseed(42)
 local alice = Sim.NewClient({ name = "Alice", faction = "Horde", group = 1, guild = "G", addons = ADDONS, root = ROOT })
 local bob = Sim.NewClient({ name = "Bob", faction = "Alliance", group = 1, guild = "G", addons = ADDONS, root = ROOT })
 local carol = Sim.NewClient({ name = "Carol", faction = "Horde", group = 1, addons = {}, root = ROOT })
-Sim.Login(alice, { "GuildGames" })
-Sim.Login(bob, { "GuildGames" })
+Sim.Login(alice, { "GoblinGames" })
+Sim.Login(bob, { "GoblinGames" })
 Sim.Advance(1)
 
 local A, B = alice.GG, bob.GG
@@ -61,8 +61,8 @@ local s
 do
     s = A.Lobby:CreateHosted("tictactoe")
     check(s ~= nil and s:IsHost(), "Alice hosts a lobby")
-    check(alice.loaded.GuildGames_TicTacToe, "Tic-Tac-Toe module loaded on demand")
-    check(not bob.loaded.GuildGames_TicTacToe, "...but not yet on Bob")
+    check(alice.loaded.GoblinGames_TicTacToe, "Tic-Tac-Toe module loaded on demand")
+    check(not bob.loaded.GoblinGames_TicTacToe, "...but not yet on Bob")
 
     A.Lobby:Invite(s, "Carol")
     A.Lobby:Invite(s, "Bob")
@@ -73,7 +73,7 @@ do
     check(s.invites["Carol-TestRealm"].status == "noaddon", "Carol flagged as no addon")
 
     B.Lobby:AcceptInvite(s.id)
-    check(bob.loaded.GuildGames_TicTacToe, "Bob loaded the module when accepting")
+    check(bob.loaded.GoblinGames_TicTacToe, "Bob loaded the module when accepting")
     Sim.Advance(2)
     local bs = B.Lobby.active
     check(s.status == "playing", "Alice's game started automatically (2 of 2)")
@@ -299,22 +299,22 @@ print("\n== Slash commands and UI smoke test")
 do
     A.Lobby:Close(A.Lobby.active)
     for _, cmd in ipairs({ "", "help", "stats", "settings", "practice ttt", "leave", "who", "debug", "debug" }) do
-        alice.env.SlashCmdList.GUILDGAMES(cmd)
+        alice.env.SlashCmdList.GOBLINGAMES(cmd)
         Sim.Advance(0.2)
     end
     Sim.Advance(5)
-    alice.env.GuildGames.UI:ShowPanel("games")
-    alice.env.GuildGames.UI:ShowPanel("lobby")
-    alice.env.GuildGames.UI:ShowPanel("game")
-    alice.env.GuildGames:SetSetting("theme", "Alliance")
-    check(alice.env.GuildGames.Theme:GetThemeFaction() == "Alliance", "theme can be forced")
+    alice.env.GoblinGames.UI:ShowPanel("games")
+    alice.env.GoblinGames.UI:ShowPanel("lobby")
+    alice.env.GoblinGames.UI:ShowPanel("game")
+    alice.env.GoblinGames:SetSetting("theme", "Alliance")
+    check(alice.env.GoblinGames.Theme:GetThemeFaction() == "Alliance", "theme can be forced")
     NoErrors(alice, bob)
 end
 
 print("\n== Saved data survives a migration run")
 do
-    local raw = alice.env.GuildGamesDB
-    check(raw.global.schemaVersion == alice.env.GuildGames.SCHEMA_VERSION, "schemaVersion stored")
+    local raw = alice.env.GoblinGamesDB
+    check(raw.global.schemaVersion == alice.env.GoblinGames.SCHEMA_VERSION, "schemaVersion stored")
     check(raw.char and next(raw.char) ~= nil, "per-character stats saved")
 end
 

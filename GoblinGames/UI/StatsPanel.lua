@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/StatsPanel.lua
+  GoblinGames/UI/StatsPanel.lua
 
   Wins, losses and draws per game for this character, plus the opponents
   you've played most. Practice games against the Training Dummy don't count.

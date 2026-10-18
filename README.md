@@ -1,4 +1,4 @@
-# GuildGames
+# GoblinGames
 
 Quick multiplayer games for World of Warcraft, played with your party, raid or
 guild while you wait for queues, a raid to form, or guild night to start.
@@ -34,7 +34,7 @@ Titan Reforged, Burning Crusade Anniversary and Classic Era.
 - `/gg help` lists every command.
 
 Invites are only accepted from your group, guild and friends by default
-(change it in Settings). Everything runs on invisible addon messages; GuildGames
+(change it in Settings). Everything runs on invisible addon messages; GoblinGames
 never posts in chat on your behalf.
 
 ## Rules this addon follows
@@ -50,11 +50,11 @@ never posts in chat on your behalf.
 ## Repository layout
 
 ```
-GuildGames/              core addon (lobby, comms, turns, UI, theming, stats)
+GoblinGames/              core addon (lobby, comms, turns, UI, theming, stats)
   Core/                  logic
   UI/                    windows and widgets
   Libs/                  LibStub, CallbackHandler, AceComm (+ChatThrottleLib), AceDB
-GuildGames_TicTacToe/    a game module (Load-On-Demand)
+GoblinGames_TicTacToe/    a game module (Load-On-Demand)
 docs/MODULE_API.md       how to write a game module
 .pkgmeta                 BigWigs packager config
 .github/workflows/       release automation
@@ -62,7 +62,7 @@ docs/MODULE_API.md       how to write a game module
 
 ## Developing
 
-Copy (or symlink) `GuildGames` and `GuildGames_TicTacToe` into
+Copy (or symlink) `GoblinGames` and `GoblinGames_TicTacToe` into
 `World of Warcraft\_retail_\Interface\AddOns\` (or `_classic_`, `_classic_era_`),
 then `/reload` after each change. Turn on `/gg debug` to see every message.
 
@@ -77,4 +77,4 @@ once their API keys and project IDs are configured.
 ## Credits
 
 Libraries from [Ace3](https://www.wowace.com/projects/ace3) (BSD licence, see
-`GuildGames/Libs/Ace3-LICENSE.txt`).
+`GoblinGames/Libs/Ace3-LICENSE.txt`).

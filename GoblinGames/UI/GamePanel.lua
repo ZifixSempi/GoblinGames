@@ -1,13 +1,13 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/GamePanel.lua
+  GoblinGames/UI/GamePanel.lua
 
   The frame a game is played in. The core draws the shared parts:
     - top:    each player's crest and name, whose turn it is, the countdown
     - middle: an empty "game area" the module fills with its board or table
     - bottom: Forfeit / Close, and Rematch for the host when the game is over
 
-  Modules get the game area with GuildGames.UI:GetGameArea() and can replace
-  the status line with GuildGames.UI:SetGameStatus("text").
+  Modules get the game area with GoblinGames.UI:GetGameArea() and can replace
+  the status line with GoblinGames.UI:SetGameStatus("text").
 ------------------------------------------------------------------------------]]
 
 local _, GG = ...

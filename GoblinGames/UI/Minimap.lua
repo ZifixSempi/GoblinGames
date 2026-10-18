@@ -1,10 +1,10 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/UI/Minimap.lua
+  GoblinGames/UI/Minimap.lua
 
   A round button on the minimap edge (drag to move it around the rim) and,
   on Retail, an entry in the Addon Compartment (the small dropdown on the
   minimap). The compartment entry comes from the ## AddonCompartmentFunc
-  lines in GuildGames.toc, which call the global functions at the bottom.
+  lines in GoblinGames.toc, which call the global functions at the bottom.
 
   Left-click: open/close the window. Right-click: settings.
 ------------------------------------------------------------------------------]]
@@ -25,7 +25,7 @@ end
 
 local function ShowTooltip(owner)
     GameTooltip:SetOwner(owner, "ANCHOR_LEFT")
-    GameTooltip:AddLine("GuildGames")
+    GameTooltip:AddLine("GoblinGames")
     GameTooltip:AddLine("Left-click: open", 1, 1, 1)
     GameTooltip:AddLine("Right-click: settings", 1, 1, 1)
     local s = GG.Lobby.active
@@ -37,7 +37,7 @@ local function ShowTooltip(owner)
 end
 
 local function Build()
-    button = CreateFrame("Button", "GuildGamesMinimapButton", Minimap)
+    button = CreateFrame("Button", "GoblinGamesMinimapButton", Minimap)
     button:SetSize(31, 31)
     button:SetFrameStrata("MEDIUM")
     button:SetFrameLevel(8)
@@ -103,14 +103,14 @@ end)
 -------------------------------------------------------------------------------
 -- Addon Compartment (Retail). These must be globals: the .toc names them.
 -------------------------------------------------------------------------------
-function GuildGames_OnAddonCompartmentClick(_, mouse)
+function GoblinGames_OnAddonCompartmentClick(_, mouse)
     if mouse == "RightButton" then UI:ShowPanel("settings") else UI:Toggle() end
 end
 
-function GuildGames_OnAddonCompartmentEnter(_, menuButton)
+function GoblinGames_OnAddonCompartmentEnter(_, menuButton)
     ShowTooltip(menuButton)
 end
 
-function GuildGames_OnAddonCompartmentLeave()
+function GoblinGames_OnAddonCompartmentLeave()
     GameTooltip:Hide()
 end

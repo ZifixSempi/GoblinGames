@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  GuildGames/Core/Lobby.lua
+  GoblinGames/Core/Lobby.lua
 
   Sessions: creating a game, inviting, accepting, starting, playing, ending.
 
@@ -461,7 +461,7 @@ end
 
 -- Someone invites us.
 Comm:RegisterOp("INV", function(sender, sid, args, _, protocol)
-    -- ACK first: it only means "GuildGames is installed here".
+    -- ACK first: it only means "GoblinGames is installed here".
     Comm:SendToPlayer(sender, "ALERT", "ACK", sid)
     local function Decline(reason) Comm:SendToPlayer(sender, "NORMAL", "DEC", sid, reason) end
 
@@ -527,7 +527,7 @@ end)
 local DECLINE_TEXT = {
     declined = "declined", busy = "is busy in another game", nogame = "doesn't have this game installed",
     notaccepting = "isn't accepting invites from you", timeout = "didn't answer",
-    version = "has a different GuildGames version", left = "left the lobby",
+    version = "has a different GoblinGames version", left = "left the lobby",
 }
 
 Comm:RegisterOp("DEC", function(sender, sid, args)
