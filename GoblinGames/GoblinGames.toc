@@ -33,6 +33,8 @@ Core\Comm.lua
 Core\Modules.lua
 Core\Lobby.lua
 Core\Turns.lua
+Core\Dice.lua
+Core\Ledger.lua
 
 UI\Widgets.lua
 UI\Effects.lua

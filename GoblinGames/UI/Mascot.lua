@@ -18,7 +18,8 @@ local QUIPS = {
     "I once lost a zeppelin at Tic-Tac-Toe. Long story.",
     "Time is money, friend! ...But this one's on the house.",
     "Win or lose, I still take a cut. Kidding! Mostly.",
-    "Rumour has it Deathroll is next. Rumours are my business.",
+    "Rumour has it Guild Bingo is next. Rumours are my business.",
+    "In Deathroll, the house always wins. I am the house.",
     "Click me again. Go on. I dare ya.",
 }
 

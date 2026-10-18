@@ -354,12 +354,13 @@ end
 --- a dropdown: dropdown APIs differ a lot between Retail and Classic, and
 --- older dropdowns were a well-known taint source.
 --- options = { { value = x, text = "Shown" }, ... }
-function UI.CycleButton(parent, label, options, getter, setter, width)
+function UI.CycleButton(parent, label, options, getter, setter, width, labelWidth)
+    labelWidth = labelWidth or 185
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetSize((width or 190) + 190, 30)
+    holder:SetSize((width or 190) + labelWidth + 5, 30)
     local fs = UI.Text(holder, label, { ink = true })
     fs:SetPoint("LEFT")
-    fs:SetWidth(185)
+    fs:SetWidth(labelWidth)
     local b = UI.Button(holder, "", width or 190, 28)
     b:SetPoint("LEFT", fs, "RIGHT", 4, 0)
 
@@ -380,6 +381,7 @@ function UI.CycleButton(parent, label, options, getter, setter, width)
     end)
     holder:SetScript("OnShow", Refresh)
     holder.Refresh = Refresh
+    holder.button = b
     return holder
 end
 

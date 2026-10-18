@@ -5,13 +5,13 @@ guild while you wait for queues, a raid to form, or guild night to start.
 Frames are themed Horde or Alliance, and every piece shows its owner's faction
 crest.
 
-**Status:** Milestone 2 (core, Tic-Tac-Toe, Connect 6). Other games show as "Coming soon".
+**Status:** Milestone 3 (core, Tic-Tac-Toe, Connect 6, Deathroll). Other games show as "Coming soon".
 
 | Game | Players | Status |
 |---|---|---|
 | Tic-Tac-Toe | 2 | ✅ |
 | Connect 6 | 2 | ✅ |
-| Deathroll | 2+ | planned |
+| Deathroll | 2+ | ✅ |
 | Guild Bingo | any | planned |
 | Go Fish | 2–6 | planned |
 | Crazy Eights | 2–6 | planned |
@@ -41,9 +41,12 @@ never posts in chat on your behalf.
 
 - It's free and open source, with no ads, donation requests or obfuscated code
   (Blizzard UI Add-On Development Policy).
-- It never touches protected functions, and it can't move gold. Gold features
-  (planned for Poker and Deathroll) will be ledger-only, optional and off by
-  default.
+- It never touches protected functions, and it can't move gold. Gold mode
+  (Deathroll now, Poker later) only keeps a ledger of who owes whom. It's
+  optional, off by default, and players settle up themselves in the trade
+  window, following Blizzard's Terms of Use.
+- Dice games use real `/roll` results from the server. Group up so the host's
+  client can see and verify every roll.
 - It honours Retail's addon-chat lockdown during boss encounters and Mythic+.
   Games pause and resume afterwards.
 
@@ -57,6 +60,7 @@ GoblinGames/             core addon (lobby, comms, turns, UI, theming, stats)
   Libs/                  LibStub, CallbackHandler, AceComm (+ChatThrottleLib), AceDB
 GoblinGames_TicTacToe/   game modules (Load-On-Demand)
 GoblinGames_Connect6/
+GoblinGames_Deathroll/
 tools/art/               art generator, logo SVG, CurseForge logo
 tools/wowsim/            headless WoW simulator + tests
 docs/MODULE_API.md       how to write a game module
@@ -70,8 +74,8 @@ Copy (or symlink) `GoblinGames` and the `GoblinGames_*` game folders into
 `World of Warcraft\_retail_\Interface\AddOns\` (or `_classic_`, `_classic_era_`),
 then `/reload` after each change. Turn on `/gg debug` to see every message.
 
-Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua` and
-`lua5.1 tools/wowsim/test_connect6.lua`.
+Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua`,
+`test_connect6.lua` and `test_deathroll.lua` in the same folder.
 
 To add a game, read [docs/MODULE_API.md](docs/MODULE_API.md).
 

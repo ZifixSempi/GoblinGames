@@ -60,6 +60,14 @@ UI:RegisterPanel("settings", "Settings", function(container)
             GG:Fire("SETTINGS_CHANGED", "minimap", v)
         end), 32)
 
+    Place(UI.Checkbox(card, "Gold mode (stakes are tracked in a ledger; off by default)",
+        Get("goldMode"), Set("goldMode")), 22)
+    local goldNote = UI.Text(card, GG.Ledger.TOS_REMINDER, { ink = true, font = "GameFontHighlightSmall" })
+    goldNote:SetPoint("TOPLEFT", 58, y)
+    goldNote:SetWidth(560)
+    goldNote:SetTextColor(0.62, 0.20, 0.12)
+    y = y - 32
+
     local note = UI.Text(card,
         "Game pieces always show each player's own faction crest; the look only changes your window.\n" ..
         "Your stats are saved per character and survive addon updates.", { ink = true, font = "GameFontHighlightSmall" })

@@ -85,7 +85,12 @@ local function Refresh()
     popup.invite = invite
     GG.Theme:SetCrest(popup.crest, invite.hostFaction)
     local entry = GG:GetCatalogEntry(invite.gameId)
-    popup.text:SetText(Util.ShortName(invite.host) .. " wants to play " .. entry.name .. "!")
+    local stake = tonumber(invite.options and invite.options.stake) or 0
+    local text = Util.ShortName(invite.host) .. " wants to play " .. entry.name .. "!"
+    if stake > 0 then
+        text = text .. "\n|cffa51d12Gold stake: " .. stake .. "g|r"
+    end
+    popup.text:SetText(text)
     popup:Show()
     if isNew then popup.popIn:Play() end
 end

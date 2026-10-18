@@ -66,6 +66,7 @@ GG:RegisterGame(Game)            -- last line of the file
 | `BotAction(session, botName)` | host | Practice games only: it's the bot's turn. Pick a move and call `session:ActAs(botName, op, ...)`. Defining this enables the **Practice** button. |
 | `turnTimer` (field, not a function) | | Override the turn length in seconds (`0` = no timer). If unset, the host's setting is used. |
 | `compactHeader` (field) | | `true` for big boards: hides the name plates and puts the status line and timer in one thin row (Connect 6 uses it). |
+| `options` (field) | | Lobby options the host picks before inviting: `{ { key, label, default, values = { {value, text}, ... }, gold = true? } }`. Read them in game as `session.options[key]`. `gold = true` options only appear with gold mode on. A `stake` option is understood by the core (invite popup, consent, `GG.Lobby.Stake(session)`). |
 | `hint` (field) | | What the goblin says when it's your turn, e.g. `"Click an empty slot. Three in a row wins!"` |
 
 **Every value in `args` is a string.** Convert with `tonumber()`. Booleans
@@ -134,7 +135,22 @@ GG.UI.MEDIA .. "Slot"               -- our own textures: Slot, Ring, Coin, Parch
 Add a game's entry to `GG.CATALOG` with `practice = true` when the module has a
 `BotAction`, so the Practice button appears.
 
-## 7. Events you can listen to
+## 7. Dice and gold
+
+```lua
+GG.Dice:Roll(1, 1000)                       -- a real /roll, made by the server
+GG.RegisterCallback(t, "DICE_ROLLED", function(event, fullName, roll, min, max) end)
+GG.Lobby.Stake(session)                     -- 0 or the gold stake
+GG.Ledger:Add(gameId, fromName, toName, gold)   -- only records entries involving you
+```
+
+Host-side pattern for dice games (see Deathroll): accept a roll only if it's
+the current player's turn, the range is right, and it's the first roll this
+turn. If the host can't see a roll (players not grouped), let the roller
+`SendAction("REPORT", ...)` it and accept it after a short wait, marked as
+unverified.
+
+## 8. Events you can listen to
 
 ```lua
 GG.RegisterCallback(myTable, "TURN_CHANGED", function(event, session) ... end)
@@ -142,11 +158,12 @@ GG.RegisterCallback(myTable, "TURN_CHANGED", function(event, session) ... end)
 
 Available events: `SESSION_CREATED`, `SESSION_UPDATED`, `SESSION_STARTED`,
 `SESSION_ENDED`, `SESSION_CLOSED`, `TURN_CHANGED`, `INVITE_RECEIVED`,
-`INVITE_CLEARED`, `SETTINGS_CHANGED`, `THEME_CHANGED`, `COMM_LOCK_CHANGED`.
+`INVITE_CLEARED`, `SETTINGS_CHANGED`, `THEME_CHANGED`, `COMM_LOCK_CHANGED`,
+`DICE_ROLLED`, `LEDGER_CHANGED`.
 
 Each table can register one function per event.
 
-## 8. Rules of the road
+## 9. Rules of the road
 
 - **Never call protected functions.** Trading, mailing, moving gold and
   targeting are all protected. Games only track things; players act themselves.

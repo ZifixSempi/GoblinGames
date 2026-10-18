@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Milestone 3: Deathroll and the dice helper
+
+- New game: **Deathroll** for 2-40 players. Roll from 1000 (or 100, 10,000, 100,000), and each roll goes up to the last result. Whoever rolls a 1 loses. A big ROLL button, a tumbling number, a skull and "DEATH!" when it's over, and a roll log.
+- Fair dice: rolls are real `/roll`s made by the server. The host's client checks each one (right player, right range, one roll per turn). Group up so every roll can be verified. Rolls the host can't see are accepted from the roller's report and marked "?".
+- Running out of time, leaving or disconnecting counts as rolling a 1.
+- Practice against the Training Dummy rolls privately, with nothing sent to your party.
+- **Gold mode** (Settings, off by default): the host can set a stake before inviting, and the invite shows it. Players with gold mode off auto-decline staked games. The loser owes each winner in a **ledger** (Stats tab, with a "Paid" button). The addon never moves gold, and it shows a reminder to follow Blizzard's Terms of Use.
+- Core: game options in the lobby (locked once invites go out), the dice helper (`GG.Dice`), and the ledger (`GG.Ledger`).
+
+
 ### Milestone 2: Connect 6
 
 - New game: **Connect 6**, the "vertical checkers" game. A 9x8 standing rack: drop one chip per turn into a column, and it falls to the lowest open hole. Six or more in a row (across, up and down, or diagonal) wins.

@@ -9,6 +9,7 @@
     GoblinGamesDB.global        shared by every character on the account
         .schemaVersion         which migrations have run (see below)
         .bingoLog              Guild Bingo winner log (Milestone 4)
+        .ledger                gold-mode debts: { t, game, from, to, gold, settled }
     GoblinGamesDB.profiles      settings (theme, sounds, minimap ...)
     GoblinGamesDB.char["Name - Realm"]
         .stats[gameId]         { wins, losses, draws, opponents = { [name] = {w,l,d} } }
@@ -58,6 +59,7 @@ local defaults = {
     global = {
         schemaVersion = 0,
         bingoLog = {},
+        ledger = {},              -- gold mode debts (see Core/Ledger.lua)
     },
     profile = {
         theme = "auto",           -- "auto" | "Horde" | "Alliance" | "Neutral"

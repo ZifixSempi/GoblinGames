@@ -118,7 +118,11 @@ function Sim.Advance(seconds, step)
         local wire = Sim.inflight
         Sim.inflight = {}
         for _, m in ipairs(wire) do
-            Sim.FireEvent(m.to, "CHAT_MSG_ADDON", m.prefix, m.text, m.channel, m.sender, m.to.name)
+            if m.system then
+                Sim.FireEvent(m.to, "CHAT_MSG_SYSTEM", m.text)
+            else
+                Sim.FireEvent(m.to, "CHAT_MSG_ADDON", m.prefix, m.text, m.channel, m.sender, m.to.name)
+            end
         end
         -- Timers.
         local due = {}
@@ -267,6 +271,21 @@ local function BuildEnv(client)
     env.LE_PARTY_CATEGORY_HOME, env.LE_PARTY_CATEGORY_INSTANCE = 1, 2
     env.ERR_FRIEND_OFFLINE_S = "%s has gone offline."
     env.ERR_CHAT_PLAYER_NOT_FOUND_S = "No player named '%s' is currently playing."
+    env.RANDOM_ROLL_RESULT = "%s rolls %d (%d-%d)"
+    -- /roll: the server rolls and tells the roller, their group, and anyone
+    -- standing nearby (we model "nearby" as everyone in client.nearby).
+    env.RandomRoll = function(min, max)
+        min, max = tonumber(min), tonumber(max)
+        local roll = Sim.forcedRoll or math.random(min, max)
+        Sim.forcedRoll = nil
+        client.rolls = (client.rolls or 0) + 1
+        local text = ("%s rolls %d (%d-%d)"):format(client.name, roll, min, max)
+        for _, c in ipairs(Sim.clients) do
+            if c == client or (c.online and client.group and c.group == client.group) or (client.nearby and client.nearby[c]) then
+                table.insert(Sim.inflight, { system = true, to = c, text = text })
+            end
+        end
+    end
     env.SOUNDKIT = { READY_CHECK = 8960, IG_PLAYER_INVITE = 880, IG_QUEST_LIST_COMPLETE = 878 }
     env.Enum = { SendAddonMessageResult = { Success = 0, InvalidPrefix = 1, InvalidMessage = 2, AddonMessageThrottle = 3,
         InvalidChatType = 4, NotInGroup = 5, TargetRequired = 6, InvalidChannel = 7, ChannelThrottle = 8, GeneralError = 9 } }

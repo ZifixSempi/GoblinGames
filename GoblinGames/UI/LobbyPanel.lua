@@ -22,6 +22,7 @@ local STATUS = {
 local DECLINE_REASON = {
     busy = "Busy in another game", nogame = "Missing this game", notaccepting = "Not taking invites",
     timeout = "Didn't answer", version = "Different version", left = "Left the lobby",
+    nogold = "Gold mode is off for them",
 }
 
 local function StepCard(parent, title)
@@ -132,6 +133,42 @@ UI:RegisterPanel("lobby", nil, function(container)
     playerList:SetPoint("TOPLEFT", whoCard.heading, "BOTTOMLEFT", -2, -8)
     playerList:SetPoint("BOTTOMRIGHT", -34, 14)
 
+    -- Game options (e.g. Deathroll's start value and gold stake), at the
+    -- bottom of the "Who's coming" card. They lock once invites go out.
+    local optionsBox = CreateFrame("Frame", nil, whoCard)
+    optionsBox:SetPoint("BOTTOMLEFT", 14, 12)
+    optionsBox:SetPoint("BOTTOMRIGHT", -14, 12)
+    optionsBox:SetHeight(1)
+    local optionsNote = UI.Text(optionsBox, "", { ink = true, font = "GameFontHighlightSmall" })
+    optionsNote:SetTextColor(0.48, 0.38, 0.25)
+    local optionWidgets = {}
+    local optionsFor -- session id the widgets were built for
+
+    local function BuildOptions(s)
+        for _, w in ipairs(optionWidgets) do w:Hide() end
+        optionWidgets = {}
+        optionsFor = s.id
+        local y = 0
+        local defs = (s.def and s.def.options) or {}
+        for i = #defs, 1, -1 do
+            local o = defs[i]
+            if not o.gold or GG:GoldModeOn() then
+                local w = UI.CycleButton(optionsBox, o.label, o.values,
+                    function() return s.options[o.key] end,
+                    function(v) GG.Lobby:SetOption(s, o.key, v) end, 150, 140)
+                w:SetPoint("BOTTOMLEFT", 0, y)
+                w:Show()
+                w:Refresh()
+                optionWidgets[#optionWidgets + 1] = w
+                y = y + 32
+            end
+        end
+        optionsBox:SetHeight(math.max(1, y))
+        optionsNote:ClearAllPoints()
+        optionsNote:SetPoint("BOTTOMLEFT", optionsBox, "BOTTOMLEFT", 0, y + 2)
+        playerList:SetPoint("BOTTOMRIGHT", -34, 14 + y + (y > 0 and 18 or 0))
+    end
+
     ---------------------------------------------------------------------------
     -- Guest view
     ---------------------------------------------------------------------------
@@ -182,9 +219,26 @@ UI:RegisterPanel("lobby", nil, function(container)
         if not isHost then
             sub:SetText("")
             GG.Theme:SetCrest(guestCrest, s:GetFaction(s.host))
-            guestText:SetText("Waiting for |cff1f7a12" .. Util.ShortName(s.host) .. "|r to start " .. entry.name .. ".")
+            local extra = ""
+            local stake = GG.Lobby.Stake(s)
+            if stake > 0 then extra = "\n\nGold stake: |cffa51d12" .. stake .. "g|r (ledger only, you trade it yourself)" end
+            guestText:SetText("Waiting for |cff1f7a12" .. Util.ShortName(s.host) .. "|r to start " .. entry.name .. "." .. extra)
             UI:Say("Hang tight! The game pops up by itself as soon as " .. Util.ShortName(s.host) .. " starts it.")
             return
+        end
+
+        if optionsFor ~= s.id then
+            BuildOptions(s)
+        end
+        local canEdit = GG.Lobby:CanEditOptions(s)
+        for _, w in ipairs(optionWidgets) do
+            w.button:SetEnabled(canEdit)
+            w:Refresh()
+        end
+        if #optionWidgets > 0 then
+            optionsNote:SetText(canEdit and "Game options (pick before inviting):" or "Game options (locked once invites went out):")
+        else
+            optionsNote:SetText("")
         end
 
         local ready = GG.Lobby.CountAccepted(s) + 1

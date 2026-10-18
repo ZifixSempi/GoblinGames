@@ -206,6 +206,60 @@ local function IsTrustedInviter(name)
 end
 
 -------------------------------------------------------------------------------
+-- Game options
+--
+-- A module can declare options the host picks in the lobby, e.g.
+--   options = {
+--     { key = "start", label = "Start at", default = 1000,
+--       values = { { value = 100, text = "100" }, { value = 1000, text = "1000" } } },
+--     { key = "stake", label = "Gold stake", default = 0, gold = true, values = ... },
+--   }
+-- `gold = true` options only appear when the host has gold mode on.
+-- Options are LOCKED once the first invite goes out, because they travel
+-- with the invite: players see the stake before they accept.
+-------------------------------------------------------------------------------
+local function EncodeOptions(options)
+    local parts = {}
+    for k, v in pairs(options or {}) do parts[#parts + 1] = k .. "=" .. tostring(v) end
+    table.sort(parts)
+    return table.concat(parts, ",")
+end
+
+local function DecodeOptions(text)
+    local options = {}
+    for k, v in (text or ""):gmatch("([%w_]+)=([^,]*)") do
+        options[k] = tonumber(v) or v
+    end
+    return options
+end
+Lobby.EncodeOptions, Lobby.DecodeOptions = EncodeOptions, DecodeOptions
+
+local function DefaultOptions(def, allowGold)
+    local options = {}
+    for _, o in ipairs(def.options or {}) do
+        if o.gold and not allowGold then options[o.key] = 0 else options[o.key] = o.default end
+    end
+    return options
+end
+
+--- Gold staked by a session (0 when none).
+function Lobby.Stake(session)
+    return tonumber(session.options and session.options.stake) or 0
+end
+
+--- Can the host still change options? (Only before inviting anyone.)
+function Lobby:CanEditOptions(session)
+    return session:IsHost() and session.status == "lobby" and #session.inviteOrder == 0
+end
+
+function Lobby:SetOption(session, key, value)
+    if not self:CanEditOptions(session) then return false end
+    session.options[key] = value
+    Fire("SESSION_UPDATED", session)
+    return true
+end
+
+-------------------------------------------------------------------------------
 -- Hosting
 -------------------------------------------------------------------------------
 
@@ -219,6 +273,7 @@ function Lobby:CreateHosted(gameId)
     local me = Util.PlayerName()
     local s = NewSession(Util.RandomId(), gameId, me)
     s.factions[me] = GG.Theme:GetPlayerFaction()
+    s.options = DefaultOptions(def, GG:GoldModeOn())
     self.sessions[s.id] = s
     self.active = s
     Fire("SESSION_CREATED", s)
@@ -240,7 +295,7 @@ function Lobby:Invite(session, name)
 
     if not existing then table.insert(session.inviteOrder, name) end
     session.invites[name] = { status = "sent" }
-    Comm:SendToPlayer(name, "ALERT", "INV", session.id, session.gameId, GG.Theme:GetPlayerFaction())
+    Comm:SendToPlayer(name, "ALERT", "INV", session.id, session.gameId, GG.Theme:GetPlayerFaction(), EncodeOptions(session.options))
     Fire("SESSION_UPDATED", session)
 
     -- No ACK in time: they don't have the addon (or are offline / out of reach).
@@ -286,7 +341,8 @@ function Lobby:Start(session)
 
     local roster = {}
     for i, p in ipairs(players) do roster[i] = p .. ":" .. session:GetFaction(p) end
-    session:SendToAll("ALERT", "START", Comm.EncodeList(roster), session.channel)
+    session:SendToAll("ALERT", "START", Comm.EncodeList(roster), session.channel, EncodeOptions(session.options))
+    if Lobby.Stake(session) > 0 then GG:Print(GG.Ledger.TOS_REMINDER) end
 
     self:Begin(session)
     return true
@@ -309,6 +365,7 @@ function Lobby:StartPractice(gameId)
     s.factions[me] = myFaction
     -- Give the dummy the other side, so both crests show up.
     s.factions[bot] = (myFaction == "Horde") and "Alliance" or "Horde"
+    s.options = DefaultOptions(def, false) -- no stakes against the dummy
     self.sessions[s.id] = s
     self.active = s
     Fire("SESSION_CREATED", s)
@@ -326,6 +383,7 @@ function Lobby:Rematch(old)
     end
     local s, err = self:CreateHosted(old.gameId)
     if not s then return nil, err end
+    for k, v in pairs(old.options or {}) do s.options[k] = v end
     for _, p in ipairs(others) do self:Invite(s, p) end
     return s
 end
@@ -439,6 +497,7 @@ function Lobby:AcceptInvite(sessionId)
 
     local s = NewSession(sessionId, invite.gameId, invite.host)
     s.factions[invite.host] = invite.hostFaction
+    s.options = invite.options
     self.sessions[s.id] = s
     self.active = s
     Comm:SendToPlayer(invite.host, "ALERT", "ACC", sessionId, GG.Theme:GetPlayerFaction())
@@ -465,16 +524,19 @@ Comm:RegisterOp("INV", function(sender, sid, args, _, protocol)
     Comm:SendToPlayer(sender, "ALERT", "ACK", sid)
     local function Decline(reason) Comm:SendToPlayer(sender, "NORMAL", "DEC", sid, reason) end
 
-    local gameId, hostFaction = args[1], args[2]
+    local gameId, hostFaction, options = args[1], args[2], DecodeOptions(args[3])
     if protocol ~= GG.PROTOCOL then return Decline("version") end
     if Lobby.invites[sid] or Lobby.sessions[sid] then return end
     if not IsTrustedInviter(sender) then return Decline("notaccepting") end
     if Lobby:IsBusy() then return Decline("busy") end
     if not GG:IsGameInstalled(gameId) then return Decline("nogame") end
+    -- Gold stakes need the player's own consent: gold mode must be on.
+    if (tonumber(options.stake) or 0) > 0 and not GG:GoldModeOn() then return Decline("nogold") end
 
     local invite = {
         id = sid, gameId = gameId, host = sender,
         hostFaction = GG.Theme:Sanitize(hostFaction),
+        options = options,
         expires = GetTime() + INVITE_TIMEOUT,
     }
     Lobby.invites[sid] = invite
@@ -528,6 +590,7 @@ local DECLINE_TEXT = {
     declined = "declined", busy = "is busy in another game", nogame = "doesn't have this game installed",
     notaccepting = "isn't accepting invites from you", timeout = "didn't answer",
     version = "has a different GoblinGames version", left = "left the lobby",
+    nogold = "has gold mode off, so they can't join a staked game",
 }
 
 Comm:RegisterOp("DEC", function(sender, sid, args)
@@ -570,6 +633,8 @@ Comm:RegisterOp("START", function(sender, sid, args)
     if not inGame then return end -- a START on the group channel for another game
     s.players = players
     s.channel = args[2]
+    s.options = DecodeOptions(args[3])
+    if Lobby.Stake(s) > 0 then GG:Print(GG.Ledger.TOS_REMINDER) end
     Lobby:Begin(s)
 end)
 

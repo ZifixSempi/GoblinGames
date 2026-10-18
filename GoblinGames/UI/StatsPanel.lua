@@ -39,6 +39,11 @@ UI:RegisterPanel("stats", "Stats", function(container)
             row.left:SetPoint("LEFT", 4, 0)
             row.right = UI.Text(row, "", { ink = true })
             row.right:SetPoint("RIGHT", -8, 0)
+            row.button = UI.Button(row, "Paid", 64, 20, function(self)
+                if self.index then GG.Ledger:Settle(self.index) end
+            end, "wood")
+            row.button:SetPoint("RIGHT", -4, 0)
+            row.button.tooltip = "Mark this as settled once the gold has changed hands in a trade."
             row.line = row:CreateTexture(nil, "BACKGROUND")
             row.line:SetColorTexture(0.45, 0.30, 0.15, 0.25)
             row.line:SetHeight(1)
@@ -57,12 +62,35 @@ UI:RegisterPanel("stats", "Stats", function(container)
             row.left:SetText(item.left)
             row.right:SetText(item.right or "")
             row.line:SetShown(item.header == true)
+            row.button.index = item.ledgerIndex
+            row.button:SetShown(item.ledgerIndex ~= nil)
+            row.right:ClearAllPoints()
+            row.right:SetPoint("RIGHT", item.ledgerIndex and -74 or -8, 0)
         end)
     list:SetPoint("TOPLEFT", 18, -66)
     list:SetPoint("BOTTOMRIGHT", -40, 18)
 
-    panel:SetScript("OnShow", function()
+    local function Fill()
         local items = {}
+
+        -- Gold ledger first: open debts (only when there are any).
+        local open = GG.Ledger:Open()
+        if #open > 0 then
+            items[#items + 1] = { header = true, left = "Gold ledger", right = UI.InkGrey("settle up in a trade, then press Paid") }
+            for _, o in ipairs(open) do
+                local e = o.entry
+                local entry = GG:GetCatalogEntry(e.game)
+                local what = (entry and entry.name or e.game) .. ", " .. date("%b %d", e.t)
+                local line
+                if Util.IsMe(e.from) then
+                    line = UI.InkRed("You owe ") .. Util.ShortName(e.to) .. UI.InkRed(" " .. e.gold .. "g")
+                else
+                    line = Util.ShortName(e.from) .. UI.InkGreen(" owes you " .. e.gold .. "g")
+                end
+                items[#items + 1] = { left = "     " .. line, right = UI.InkGrey(what), ledgerIndex = o.index }
+            end
+        end
+
         local totalWins = 0
         for _, entry in ipairs(GG.CATALOG) do
             local s = GG.Stats:Get(entry.id)
@@ -91,6 +119,9 @@ UI:RegisterPanel("stats", "Stats", function(container)
             UI:Say("Look at all those wins! I'm putting you on a poster.")
         end
         list:SetItems(items)
-    end)
+    end
+
+    panel:SetScript("OnShow", Fill)
+    GG.RegisterCallback(panel, "LEDGER_CHANGED", function() if panel:IsShown() then Fill() end end)
     return panel
 end)
