@@ -1,0 +1,9 @@
+# Packager output
+.release/
+
+# Editor and OS clutter
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

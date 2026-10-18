@@ -1,0 +1,18 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+	<!--
+		Embedded libraries (a small subset of Ace3, BSD licensed, see Libs\Ace3-LICENSE.txt).
+
+		LibStub            - tiny version registry so several addons can share one copy of a library.
+		CallbackHandler    - lets our code fire and listen to custom events ("SESSION_STARTED" ...).
+		AceComm-3.0        - wraps C_ChatInfo.SendAddonMessage: splits long messages into 255-byte
+		                     chunks and reassembles them, and queues sends through ChatThrottleLib
+		                     so we never trip Blizzard's addon-message throttle.
+		AceDB-3.0          - SavedVariables helper with defaults and per-character/profile sections.
+
+		Libraries are loaded through their own XML files, in dependency order.
+	-->
+	<Script file="Libs\LibStub\LibStub.lua"/>
+	<Include file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
+	<Include file="Libs\AceComm-3.0\AceComm-3.0.xml"/>
+	<Include file="Libs\AceDB-3.0\AceDB-3.0.xml"/>
+</Ui>

@@ -1,0 +1,30 @@
+# BigWigs packager configuration
+# https://github.com/BigWigsMods/packager/wiki/Preparing-the-PackageMeta-File
+#
+# The repo holds several addon folders side by side. The packager first copies
+# the whole repo into a folder named after `package-as`, then `move-folders`
+# lifts each addon folder out to the top level of the zip, so players get:
+#
+#   GuildGames/
+#   GuildGames_TicTacToe/
+#
+# When you add a game module, add its folder here too.
+
+package-as: GuildGames
+
+move-folders:
+  GuildGames/GuildGames: GuildGames
+  GuildGames/GuildGames_TicTacToe: GuildGames_TicTacToe
+
+# Libraries are committed under GuildGames/Libs, so no externals are needed.
+
+ignore:
+  - docs
+  - tools
+  - README.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+enable-nolib-creation: no

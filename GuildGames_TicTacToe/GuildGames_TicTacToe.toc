@@ -1,0 +1,16 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cffd4af37Guild|r|cffff6b4aGames|r - Tic-Tac-Toe
+## Notes: Tic-Tac-Toe for GuildGames, played with faction crests.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Note_02
+## Category: Miscellaneous
+## Group: GuildGames
+## X-Curse-Project-ID: 000000
+## LoadOnDemand: 1
+## Dependencies: GuildGames
+
+# Loaded by the core the first time someone hosts, joins or practices
+# Tic-Tac-Toe (C_AddOns.LoadAddOn). Nothing here runs at login.
+
+TicTacToe.lua

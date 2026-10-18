@@ -1,0 +1,47 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cffd4af37Guild|r|cffff6b4aGames|r
+## Notes: Play quick games with your party, raid or guild while you wait: queues, raid forming and guild nights.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Dice_02
+## Category: Miscellaneous
+## X-Curse-Project-ID: 000000
+## X-Website: https://github.com/ZifixSempi/goblingames
+## SavedVariables: GuildGamesDB
+## AddonCompartmentFunc: GuildGames_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: GuildGames_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: GuildGames_OnAddonCompartmentLeave
+
+# ---------------------------------------------------------------------------
+# GuildGames core. Files load top to bottom, so the order below matters:
+# libraries first, then the namespace (Init), then everything that uses it.
+#
+# The Interface line lists every client we support (comma-separated values
+# are allowed since 10.2.7): Retail (Midnight), Mists Classic, Titan Reforged,
+# TBC Anniversary and Classic Era. Code checks for missing APIs at runtime.
+#
+# X-Curse-Project-ID is a placeholder until the CurseForge project exists.
+# ---------------------------------------------------------------------------
+
+embeds.xml
+
+Core\Init.lua
+Core\Util.lua
+Core\Database.lua
+Core\Theme.lua
+Core\Comm.lua
+Core\Modules.lua
+Core\Lobby.lua
+Core\Turns.lua
+
+UI\Widgets.lua
+UI\MainWindow.lua
+UI\GamesPanel.lua
+UI\LobbyPanel.lua
+UI\GamePanel.lua
+UI\StatsPanel.lua
+UI\SettingsPanel.lua
+UI\InvitePopup.lua
+UI\Minimap.lua
+
+Slash.lua
