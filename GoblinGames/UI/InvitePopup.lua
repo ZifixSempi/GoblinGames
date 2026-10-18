@@ -1,10 +1,11 @@
 --[[----------------------------------------------------------------------------
   GoblinGames/UI/InvitePopup.lua
 
-  The "X invites you to play Y" box at the top of the screen.
+  "Bob wants to play Tic-Tac-Toe!" A parchment note at the top of the screen,
+  with the goblin peeking over it.
 
-  Why not Blizzard's StaticPopup system? StaticPopups are shared with the
-  default UI (group invites, release spirit ...). Addons that add their own
+  Why not Blizzard's StaticPopup? StaticPopups are shared with the default UI
+  (group invites, release spirit ...), and addons adding their own
   StaticPopupDialogs have caused taint in the past, so we use our own frame.
 ------------------------------------------------------------------------------]]
 
@@ -24,10 +25,9 @@ local function NextInvite()
 end
 
 local function Build()
-    popup = CreateFrame("Frame", "GoblinGamesInvitePopup", UIParent, UI.BACKDROP)
-    GG.Theme:ApplyFrame(popup)
-    popup:SetSize(340, 112)
-    popup:SetPoint("TOP", 0, -140)
+    popup = CreateFrame("Frame", "GoblinGamesInvitePopup", UIParent)
+    popup:SetSize(380, 132)
+    popup:SetPoint("TOP", 0, -150)
     popup:SetFrameStrata("DIALOG")
     popup:SetClampedToScreen(true)
     popup:EnableMouse(true)
@@ -35,31 +35,41 @@ local function Build()
     popup:RegisterForDrag("LeftButton")
     popup:SetScript("OnDragStart", popup.StartMoving)
     popup:SetScript("OnDragStop", popup.StopMovingOrSizing)
+    UI.NineSlice(popup, UI.MEDIA .. "Parchment", 128, 24, 18)
+
+    -- The goblin peeks over the top edge.
+    local head = popup:CreateTexture(nil, "OVERLAY")
+    head:SetTexture(UI.MEDIA .. "GoblinHead")
+    head:SetSize(112, 56)
+    head:SetPoint("BOTTOM", popup, "TOP", 0, -14)
+    UI.AddBob(head, 3, 0.8)
 
     popup.crest = popup:CreateTexture(nil, "ARTWORK")
-    popup.crest:SetSize(36, 36)
-    popup.crest:SetPoint("TOPLEFT", 16, -14)
+    popup.crest:SetSize(44, 44)
+    popup.crest:SetPoint("TOPLEFT", 18, -22)
 
-    popup.text = UI.Label(popup, "", "GameFontHighlight")
+    popup.text = UI.Text(popup, "", { fancy = true, size = 17, ink = true })
     popup.text:SetPoint("TOPLEFT", popup.crest, "TOPRIGHT", 10, -2)
-    popup.text:SetWidth(260)
+    popup.text:SetWidth(290)
 
-    popup.timer = UI.Label(popup, "", "GameFontHighlightSmall")
+    popup.timer = UI.Text(popup, "", { ink = true, font = "GameFontHighlightSmall" })
     popup.timer:SetPoint("TOPLEFT", popup.text, "BOTTOMLEFT", 0, -4)
+    popup.timer:SetTextColor(0.48, 0.38, 0.25)
 
-    local accept = UI.Button(popup, "Accept", 110, 24, function()
+    local accept = UI.Button(popup, "Let's play!", 150, 34, function()
         if popup.invite then GG.Lobby:AcceptInvite(popup.invite.id) end
-    end)
-    accept:SetPoint("BOTTOMRIGHT", popup, "BOTTOM", -4, 14)
+    end, "primary")
+    accept:SetPoint("BOTTOMRIGHT", popup, "BOTTOM", -4, 16)
 
-    local decline = UI.Button(popup, "Decline", 110, 24, function()
+    local decline = UI.Button(popup, "Not now", 120, 34, function()
         if popup.invite then GG.Lobby:DeclineInvite(popup.invite.id, "declined") end
-    end)
-    decline:SetPoint("BOTTOMLEFT", popup, "BOTTOM", 4, 14)
+    end, "wood")
+    decline:SetPoint("BOTTOMLEFT", popup, "BOTTOM", 4, 16)
 
+    UI.AddPopIn(popup)
     popup:SetScript("OnUpdate", function(self)
         if self.invite then
-            self.timer:SetText(UI.Grey("Expires in " .. Util.FormatSeconds(self.invite.expires - GetTime())))
+            self.timer:SetText("Offer expires in " .. Util.FormatSeconds(self.invite.expires - GetTime()))
         end
     end)
 end
@@ -71,11 +81,13 @@ local function Refresh()
         return
     end
     if not popup then Build() end
+    local isNew = popup.invite ~= invite
     popup.invite = invite
     GG.Theme:SetCrest(popup.crest, invite.hostFaction)
     local entry = GG:GetCatalogEntry(invite.gameId)
-    popup.text:SetText(UI.Gold(Util.ShortName(invite.host)) .. " invites you to play " .. GG.Theme:TitleText(entry.name) .. ".")
+    popup.text:SetText(Util.ShortName(invite.host) .. " wants to play " .. entry.name .. "!")
     popup:Show()
+    if isNew then popup.popIn:Play() end
 end
 
 local listener = {}

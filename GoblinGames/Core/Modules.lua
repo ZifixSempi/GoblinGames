@@ -16,8 +16,9 @@
 
 local _, GG = ...
 
+-- practice = true shows a "Practice" button (the module defines BotAction).
 GG.CATALOG = {
-    { id = "tictactoe",   addon = "GoblinGames_TicTacToe",   name = "Tic-Tac-Toe",   min = 2, max = 2,
+    { id = "tictactoe",   addon = "GoblinGames_TicTacToe",   name = "Tic-Tac-Toe",   min = 2, max = 2, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Note_02",       desc = "Three in a row, with faction crests." },
     { id = "connect6",    addon = "GoblinGames_Connect6",    name = "Connect 6",     min = 2, max = 2,
       icon = "Interface\\Icons\\INV_Misc_Gem_Pearl_04",  desc = "19x19 board, two stones a turn, six in a row wins." },

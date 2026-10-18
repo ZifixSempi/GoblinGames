@@ -19,7 +19,11 @@ local GG = GoblinGames          -- the core's public API (a global set by Goblin
 local Util = GG.Util
 local UI = GG.UI
 
-local Game = { id = "tictactoe" }
+local Game = {
+    id = "tictactoe",
+    -- What the goblin says when it's your turn.
+    hint = "Click an empty slot. Three in a row wins!",
+}
 
 local LINES = {
     { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 },   -- rows
@@ -65,50 +69,84 @@ end
 -------------------------------------------------------------------------------
 -- Board UI
 -------------------------------------------------------------------------------
-local CELL = 96
+local CELL = 88
 local boardFrame, cells, legend
 local current -- the session the board is showing
+local shown = {} -- which cells already show a piece (to animate only new ones)
 
 local function OnCellClick(cell)
     local s = current
     if not s or s.status ~= "playing" then return end
-    if not GG.Turns:IsMyTurn(s) or s.data.board[cell.index] ~= 0 then return end
+    if not GG.Turns:IsMyTurn(s) or s.data.board[cell.index] ~= 0 then
+        cell.shake:Play() -- a little "nope" wiggle
+        return
+    end
     s:SendAction("MOVE", cell.index)
 end
 
 local function BuildBoard()
     local area = UI:GetGameArea()
     boardFrame = CreateFrame("Frame", nil, area)
-    boardFrame:SetSize(CELL * 3 + 16, CELL * 3 + 16)
-    boardFrame:SetPoint("TOP", 0, -4)
+    boardFrame:SetSize(CELL * 3 + 12, CELL * 3 + 12)
+    boardFrame:SetPoint("TOP", 0, -2)
 
     cells = {}
     for i = 1, 9 do
-        local cell = CreateFrame("Button", nil, boardFrame, UI.BACKDROP)
+        local cell = CreateFrame("Button", nil, boardFrame)
         cell:SetSize(CELL, CELL)
         local col, row = (i - 1) % 3, math.floor((i - 1) / 3)
-        cell:SetPoint("TOPLEFT", 4 + col * (CELL + 4), -4 - row * (CELL + 4))
+        cell:SetPoint("TOPLEFT", col * (CELL + 6), -row * (CELL + 6))
         cell.index = i
-        GG.Theme:ApplyFrame(cell, "tile")
 
-        cell.crest = cell:CreateTexture(nil, "ARTWORK")
-        cell.crest:SetSize(CELL - 24, CELL - 24)
+        -- A carved wooden slot (our own art from GoblinGames\Media).
+        local slot = cell:CreateTexture(nil, "BACKGROUND")
+        slot:SetTexture(UI.MEDIA .. "Slot")
+        slot:SetAllPoints()
+
+        -- Coloured ring behind the crest: gold for seat 1, silver for seat 2,
+        -- so same-faction players can still tell their pieces apart.
+        cell.ring = cell:CreateTexture(nil, "ARTWORK", nil, 1)
+        cell.ring:SetTexture(UI.MEDIA .. "Ring")
+        cell.ring:SetPoint("CENTER")
+        cell.ring:SetSize(CELL - 10, CELL - 10)
+
+        cell.crest = cell:CreateTexture(nil, "ARTWORK", nil, 2)
+        cell.crest:SetSize(CELL - 30, CELL - 30)
         cell.crest:SetPoint("CENTER")
+        UI.AddPopIn(cell.crest)
+        UI.AddPopIn(cell.ring)
 
         cell.glow = cell:CreateTexture(nil, "OVERLAY")
-        cell.glow:SetAllPoints()
-        cell.glow:SetTexture("Interface\\Buttons\\UI-Listbox-Highlight")
+        cell.glow:SetTexture(UI.MEDIA .. "ButtonGlow")
+        cell.glow:SetPoint("TOPLEFT", -6, 6)
+        cell.glow:SetPoint("BOTTOMRIGHT", 6, -6)
         cell.glow:SetBlendMode("ADD")
+        cell.glow:SetVertexColor(1, 0.85, 0.3)
+        UI.AddPulse(cell.glow, 0.25, 0.45)
         cell.glow:Hide()
 
-        cell:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+        local hover = cell:CreateTexture(nil, "HIGHLIGHT")
+        hover:SetTexture(UI.MEDIA .. "ButtonGlow")
+        hover:SetAllPoints()
+        hover:SetBlendMode("ADD")
+        cell.hover = hover
+
+        -- Wiggle when you click somewhere you can't play.
+        local shake = cell:CreateAnimationGroup()
+        for n, dx in ipairs({ 5, -10, 8, -3 }) do
+            local t = shake:CreateAnimation("Translation")
+            t:SetOffset(dx, 0)
+            t:SetDuration(0.05)
+            t:SetOrder(n)
+        end
+        cell.shake = shake
+
         cell:SetScript("OnClick", OnCellClick)
         cells[i] = cell
     end
 
-    legend = UI.Label(area, "", "GameFontHighlightSmall")
+    legend = UI.Text(area, "", { font = "GameFontHighlightSmall", justify = "CENTER" })
     legend:SetPoint("TOP", boardFrame, "BOTTOM", 0, -6)
-    legend:SetJustifyH("CENTER")
 end
 
 local function Refresh()
@@ -126,24 +164,32 @@ local function Refresh()
         local seat = board[i]
         if seat ~= 0 then
             GG.Theme:SetCrest(cell.crest, s:GetFaction(s.players[seat]))
-            cell.crest:Show()
             local c = SEAT_COLORS[seat]
-            cell:SetBackdropBorderColor(c[1], c[2], c[3], 1)
+            cell.ring:SetVertexColor(c[1], c[2], c[3])
+            cell.crest:Show()
+            cell.ring:Show()
+            if not shown[i] then
+                shown[i] = true
+                cell.crest.popIn:Play()
+                cell.ring.popIn:Play()
+            end
         else
+            shown[i] = nil
             cell.crest:Hide()
-            GG.Theme:ApplyFrame(cell, "tile")
+            cell.ring:Hide()
         end
         cell.glow:SetShown(glowing[i] == true)
-        -- Only show the hover highlight on cells you can actually play.
-        cell:GetHighlightTexture():SetAlpha((myTurn and seat == 0) and 1 or 0)
+        if glowing[i] then cell.glow.pulse:Play() end
+        -- Only light up cells you can actually play.
+        cell.hover:SetAlpha((myTurn and seat == 0) and 1 or 0)
     end
 
     local parts = {}
     for seat, name in ipairs(s.players) do
-        local hex = seat == 1 and "ffd133" or "c0ccE6"
+        local hex = seat == 1 and "ffd133" or "c0cce6"
         parts[#parts + 1] = UI.Color((seat == 1 and "Gold" or "Silver") .. " ring: ", hex) .. Util.ShortName(name)
     end
-    legend:SetText(table.concat(parts, "     "))
+    legend:SetText(table.concat(parts, "      "))
 end
 
 -------------------------------------------------------------------------------
@@ -154,6 +200,7 @@ end
 function Game.OnSessionStart(session)
     current = session
     session.data.board = EmptyBoard()
+    wipe(shown)
     if not boardFrame then BuildBoard() end
     boardFrame:Show()
     legend:Show()

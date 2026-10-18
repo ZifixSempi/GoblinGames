@@ -22,32 +22,71 @@ GG.Theme = Theme
 -------------------------------------------------------------------------------
 -- Palettes
 -------------------------------------------------------------------------------
+-- Colours for our own textures (GoblinGames\Media). Those are drawn in light,
+-- neutral tones and tinted with Texture:SetVertexColor, so one set of art
+-- serves all three themes:
+--   frame   the wooden window frame      planks  the background planks
+--   accent  ribbons, selected tabs        primary the main "do it!" buttons
 Theme.palettes = {
-    Horde = {
-        bg      = { 0.10, 0.03, 0.02, 0.95 },  -- scorched wood
-        border  = { 0.62, 0.12, 0.08, 1 },     -- iron with a red glow
-        accent  = { 0.85, 0.20, 0.12, 1 },
-        title   = "ffff5a3c",
+    Horde = {   -- scorched red wood and iron
+        bg      = { 0.10, 0.03, 0.02, 0.95 },
+        border  = { 0.62, 0.12, 0.08, 1 },
+        title   = "ffff7a52",
         tile    = { 0.20, 0.06, 0.04, 0.9 },
         tileHi  = { 0.45, 0.12, 0.06, 0.9 },
+        frame   = { 1.00, 0.66, 0.58 },
+        planks  = { 1.00, 0.82, 0.78 },
+        accent  = { 0.80, 0.18, 0.12 },
+        primary = { 0.88, 0.26, 0.16 },
     },
-    Alliance = {
-        bg      = { 0.03, 0.06, 0.16, 0.95 },  -- deep banner blue
-        border  = { 0.85, 0.68, 0.25, 1 },     -- gold trim
-        accent  = { 0.30, 0.55, 1.00, 1 },
+    Alliance = {   -- blue banners, stone and gold
+        bg      = { 0.03, 0.06, 0.16, 0.95 },
+        border  = { 0.85, 0.68, 0.25, 1 },
         title   = "ffffd24a",
         tile    = { 0.06, 0.12, 0.28, 0.9 },
         tileHi  = { 0.12, 0.24, 0.50, 0.9 },
+        frame   = { 0.70, 0.78, 1.00 },
+        planks  = { 0.80, 0.84, 1.00 },
+        accent  = { 0.20, 0.40, 0.86 },
+        primary = { 0.26, 0.52, 0.98 },
     },
-    Neutral = {
+    Neutral = {   -- goblin green: Steamwheedle doesn't pick sides
         bg      = { 0.06, 0.06, 0.06, 0.95 },
         border  = { 0.60, 0.60, 0.60, 1 },
-        accent  = { 0.90, 0.75, 0.30, 1 },
-        title   = "ffe6c25a",
+        title   = "ffb6f25a",
         tile    = { 0.14, 0.14, 0.14, 0.9 },
         tileHi  = { 0.28, 0.28, 0.28, 0.9 },
+        frame   = { 1.00, 1.00, 1.00 },
+        planks  = { 1.00, 1.00, 1.00 },
+        accent  = { 0.30, 0.60, 0.18 },
+        primary = { 0.36, 0.74, 0.24 },
     },
 }
+
+-- Colours that don't change with the theme.
+Theme.fixed = {
+    wood   = { 0.88, 0.66, 0.44 },   -- secondary buttons, idle tabs
+    danger = { 0.82, 0.22, 0.18 },   -- forfeit / cancel
+    gold   = { 1.00, 0.80, 0.28 },
+    silver = { 0.78, 0.82, 0.92 },
+    grey   = { 0.55, 0.55, 0.55 },
+}
+
+--- An {r,g,b} colour by name: a palette key (frame, planks, accent, primary)
+--- or a fixed one (wood, danger, gold, silver, grey).
+function Theme:Color(key)
+    return self:GetPalette()[key] or self.fixed[key] or self.fixed.wood
+end
+
+-- Textures painted with a theme colour, repainted when the theme changes.
+local painted = setmetatable({}, { __mode = "k" })
+
+--- Tint a texture with a theme colour and keep it in sync with the theme.
+function Theme:Paint(texture, key)
+    painted[texture] = key
+    local c = self:Color(key)
+    texture:SetVertexColor(c[1], c[2], c[3])
+end
 
 -- Backdrop textures (all part of the base client on every flavor).
 -- Horde gets the heavy dialog border tinted iron-red; Alliance gets the same
@@ -135,6 +174,9 @@ end
 function Theme:Refresh()
     for frame, variant in pairs(themedFrames) do
         self:ApplyFrame(frame, variant)
+    end
+    for texture, key in pairs(painted) do
+        self:Paint(texture, key)
     end
     GG:Fire("THEME_CHANGED")
 end

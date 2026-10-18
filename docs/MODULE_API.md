@@ -64,6 +64,7 @@ GG:RegisterGame(Game)            -- last line of the file
 | `OnSessionClosed(session)` | everyone | The session is gone. Hide your board. |
 | `BotAction(session, botName)` | host | Practice games only: it's the bot's turn. Pick a move and call `session:ActAs(botName, op, ...)`. Defining this enables the **Practice** button. |
 | `turnTimer` (field, not a function) | | Override the turn length in seconds (`0` = no timer). If unset, the host's setting is used. |
+| `hint` (field) | | What the goblin says when it's your turn, e.g. `"Click an empty slot. Three in a row wins!"` |
 
 **Every value in `args` is a string.** Convert with `tonumber()`. Booleans
 arrive as `"1"` and `"0"`, and `nil` arrives as `""`. Local delivery (the host's
@@ -117,9 +118,19 @@ GG.UI:SetGameStatus("Pick two cards to discard")   -- nil = automatic text
 GG.Theme:SetCrest(texture, faction)
 GG.Theme:ApplyFrame(frame, "tile")  -- frame needs GG.UI.BACKDROP as its template
 GG.Theme:PlaySound("turn")          -- "victory" | "defeat" | "turn" | "invite" | "click"
-GG.UI.Button(parent, text, w, h, onClick)
-GG.UI.Label(parent, text, font)
+GG.UI.Button(parent, text, w, h, onClick, style)  -- style: "primary" | "wood" | "danger"
+GG.UI.Card(parent)                  -- parchment card (use { ink = true } text on it)
+GG.UI.Text(parent, text, { fancy = true, size = 18, ink = true })
+GG.UI.Ribbon(parent, text, w, h, colorKey)
+GG.UI.AddPopIn(region)              -- then region.popIn:Play()
+GG.UI.AddPulse(region)              -- then region.pulse:Play()
+GG.UI:CoinShower(frame)             -- celebration
+GG.UI:Say("text")                   -- make the goblin say something
+GG.UI.MEDIA .. "Slot"               -- our own textures: Slot, Ring, Coin, Parchment ...
 ```
+
+Add a game's entry to `GG.CATALOG` with `practice = true` when the module has a
+`BotAction`, so the Practice button appears.
 
 ## 7. Events you can listen to
 

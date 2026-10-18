@@ -80,6 +80,11 @@ function FrameMethods:GetHighlightTexture()
     self._hl = self._hl or NewObject(self._client, "Texture")
     return self._hl
 end
+function FrameMethods:CreateAnimationGroup() return NewObject(self._client, "AnimationGroup") end
+function FrameMethods:CreateAnimation(kind) return NewObject(self._client, kind) end
+function FrameMethods:IsEnabled() return true end
+function FrameMethods:GetFrameLevel() return self._level or 1 end
+function FrameMethods:SetFrameLevel(l) self._level = l end
 function FrameMethods:Click(button)
     if self._scripts.OnClick then self._scripts.OnClick(self, button or "LeftButton") end
 end

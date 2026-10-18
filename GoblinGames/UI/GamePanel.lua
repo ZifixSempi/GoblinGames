@@ -1,13 +1,17 @@
 --[[----------------------------------------------------------------------------
   GoblinGames/UI/GamePanel.lua
 
-  The frame a game is played in. The core draws the shared parts:
-    - top:    each player's crest and name, whose turn it is, the countdown
-    - middle: an empty "game area" the module fills with its board or table
-    - bottom: Forfeit / Close, and Rematch for the host when the game is over
+  Where games are played. The core draws the shared parts:
+    - the players' name plates, with a glow on whoever's turn it is,
+      a big "VS" and a burning fuse for the turn timer
+    - a status line ("Your turn!")
+    - an empty "game area" that the module fills with its board or table
+    - the result banner (+ coin shower when you win)
+    - Forfeit / Rematch / Back buttons in the bottom-right corner
 
-  Modules get the game area with GoblinGames.UI:GetGameArea() and can replace
-  the status line with GoblinGames.UI:SetGameStatus("text").
+  Modules: GoblinGames.UI:GetGameArea() gives the frame to build in;
+  GoblinGames.UI:SetGameStatus("text") overrides the status line (nil resets);
+  a `hint` field on the module definition is what the goblin says on your turn.
 ------------------------------------------------------------------------------]]
 
 local _, GG = ...
@@ -15,11 +19,11 @@ local _, GG = ...
 local UI = GG.UI
 local Util = GG.Util
 
-local panel, area, statusText, timerText, chips, forfeitButton, rematchButton
-local customStatus
+local panel, area, statusText, plates, vsText, fuse, fuseText, banner
+local quitButton, rematchButton, backButton
+local customStatus, celebrated
 
---- The frame a module should parent its board to. Sized to fill the space
---- between the player bar and the buttons.
+--- The frame a module should parent its board to.
 function UI:GetGameArea()
     if not panel then UI:ShowPanel("game") end
     return area
@@ -31,119 +35,203 @@ function UI:SetGameStatus(text)
     UI:RefreshGamePanel()
 end
 
-local function PlayerChip(parent)
-    local chip = CreateFrame("Frame", nil, parent)
-    chip:SetSize(130, 26)
-    chip.crest = chip:CreateTexture(nil, "ARTWORK")
-    chip.crest:SetSize(22, 22)
-    chip.crest:SetPoint("LEFT")
-    chip.name = UI.Label(chip, "", "GameFontHighlightSmall")
-    chip.name:SetPoint("LEFT", chip.crest, "RIGHT", 4, 0)
-    chip.name:SetWidth(100)
-    chip.arrow = chip:CreateTexture(nil, "OVERLAY")
-    chip.arrow:SetSize(14, 14)
-    chip.arrow:SetPoint("BOTTOM", chip.crest, "TOP", 0, -2)
-    chip.arrow:SetTexture("Interface\\Buttons\\UI-MicroStream-Yellow")
-    return chip
+local function Plate(parent)
+    local plate = CreateFrame("Frame", nil, parent)
+    plate:SetSize(250, 52)
+    local glow = plate:CreateTexture(nil, "BACKGROUND")
+    glow:SetTexture(UI.MEDIA .. "ButtonGlow")
+    glow:SetPoint("TOPLEFT", -14, 10)
+    glow:SetPoint("BOTTOMRIGHT", 14, -10)
+    glow:SetBlendMode("ADD")
+    glow:SetVertexColor(1, 0.85, 0.3)
+    UI.AddPulse(glow, 0.3, 0.6)
+    plate.glow = glow
+    local bg = plate:CreateTexture(nil, "BORDER")
+    bg:SetColorTexture(0, 0, 0, 0.45)
+    bg:SetAllPoints()
+    plate.crest = plate:CreateTexture(nil, "ARTWORK")
+    plate.crest:SetSize(44, 44)
+    plate.crest:SetPoint("LEFT", 4, 0)
+    plate.name = UI.Text(plate, "", { fancy = true, size = 18 })
+    plate.name:SetPoint("TOPLEFT", plate.crest, "TOPRIGHT", 8, -4)
+    plate.name:SetWidth(186)
+    plate.sub = UI.Text(plate, "", { font = "GameFontHighlightSmall" })
+    plate.sub:SetPoint("TOPLEFT", plate.name, "BOTTOMLEFT", 0, -3)
+    return plate
+end
+
+local function Say(s)
+    if s.status == "ended" then
+        local r = s.result or {}
+        if r.outcome == "win" then UI:Say("HA! Knew you had it in ya. Rematch? Winners keep winning, I hear.")
+        elseif r.outcome == "loss" then UI:Say("Ouch. Shake it off, champ. Rematch?")
+        elseif r.outcome == "draw" then UI:Say("A draw! Nobody wins, nobody pays. My least favourite outcome.")
+        else UI:Say("Game over" .. (r.reason and (": " .. r.reason) or "") .. ". Head back to Games for another round.") end
+    elseif GG:IsCommLocked() then
+        UI:Say("Boss fight! Blizzard pauses addon messages during encounters. We'll pick up right after.")
+    elseif GG.Turns:IsMyTurn(s) then
+        UI:Say("Your turn! " .. (s.def and s.def.hint or ""))
+    elseif GG.Turns:Current(s) then
+        UI:Say("Waiting on " .. Util.ShortName(GG.Turns:Current(s)) .. "... *taps foot*")
+    end
 end
 
 function UI:RefreshGamePanel()
     if not panel or not panel:IsShown() then return end
     local s = GG.Lobby.active
-    if not s then return end
+    if not s or s.status == "lobby" then return end
 
-    -- Player chips.
+    -- Name plates: two players face off left vs right; more players line up.
     local current = GG.Turns:Current(s)
-    for i, name in ipairs(s.players) do
-        local chip = chips[i]
-        if not chip then
-            chip = PlayerChip(panel)
-            chip:SetPoint("TOPLEFT", (i - 1) * 134, 0)
-            chips[i] = chip
+    local count = math.min(#s.players, 4)
+    for i = 1, count do
+        local name = s.players[i]
+        local plate = plates[i]
+        if not plate then
+            plate = Plate(panel)
+            plates[i] = plate
         end
-        GG.Theme:SetCrest(chip.crest, s:GetFaction(name))
+        plate:ClearAllPoints()
+        if count == 2 then
+            plate:SetPoint(i == 1 and "TOPLEFT" or "TOPRIGHT", 0, -2)
+        else
+            plate:SetWidth(168)
+            plate:SetPoint("TOPLEFT", (i - 1) * 176, -2)
+        end
+        GG.Theme:SetCrest(plate.crest, s:GetFaction(name))
         local label = Util.ShortName(name)
-        if s.left[name] then label = UI.Grey(label .. " (out)")
-        elseif s.offlineSince[name] then label = UI.Red(label .. " (offline)")
-        elseif Util.IsMe(name) then label = UI.Gold(label) end
-        chip.name:SetText(label)
-        chip.arrow:SetShown(s.status == "playing" and name == current)
-        chip:SetShown(i <= 4) -- more than 4 players: modules show their own list
+        if Util.IsMe(name) then label = label .. " (you)" end
+        plate.name:SetText(label)
+        local sub
+        if s.left[name] then sub = UI.Grey("Out of the game")
+        elseif s.offlineSince[name] then sub = UI.Red("Offline... waiting")
+        elseif s.status == "playing" and name == current then sub = UI.Gold(Util.IsMe(name) and "Your turn!" or "Thinking...")
+        else sub = UI.Grey(Util.IsBot(name) and "Made of straw" or (s:GetFaction(name) .. " champion")) end
+        plate.sub:SetText(sub)
+        local active = s.status == "playing" and name == current
+        plate.glow:SetShown(active)
+        if active then plate.glow.pulse:Play() else plate.glow.pulse:Stop() end
+        plate:Show()
     end
-    for i = #s.players + 1, #chips do chips[i]:Hide() end
+    for i = count + 1, #plates do plates[i]:Hide() end
+    vsText:SetShown(count == 2)
 
     -- Status line.
     local text
     if customStatus then
         text = customStatus
     elseif s.status == "ended" then
-        local r = s.result or {}
-        if r.outcome == "win" then text = UI.Green("You won!")
-        elseif r.outcome == "loss" then text = UI.Red("You lost.")
-        elseif r.outcome == "draw" then text = UI.Gold("It's a draw.")
-        else text = UI.Grey("Game over" .. (r.reason and (": " .. r.reason) or ".")) end
+        text = ""
     elseif GG:IsCommLocked() then
-        text = UI.Grey("Paused: addon messages are blocked during this encounter.")
+        text = UI.Grey("Paused for a boss fight")
     elseif GG.Turns:IsMyTurn(s) then
-        text = UI.Gold("Your turn")
+        text = UI.Gold("Your turn!")
     elseif current then
         text = Util.ShortName(current) .. "'s turn"
     else
-        text = UI.Grey("Starting...")
+        text = UI.Grey("Shuffling...")
     end
     statusText:SetText(text)
 
-    -- Buttons.
+    -- Result banner and buttons.
     local ended = s.status == "ended"
-    forfeitButton:SetText(ended and "Close" or (s.isLocal and "Quit" or "Forfeit"))
+    if ended then
+        local r = s.result or {}
+        if r.outcome == "win" then banner:SetText("Victory!"); banner:SetColorKey("gold")
+        elseif r.outcome == "loss" then banner:SetText("Defeat"); banner:SetColorKey("grey")
+        elseif r.outcome == "draw" then banner:SetText("Draw!"); banner:SetColorKey("wood")
+        else banner:SetText("Game over"); banner:SetColorKey("grey") end
+        if not banner:IsShown() then
+            banner:Show()
+            banner.popIn:Play()
+        end
+        if r.outcome == "win" and celebrated ~= s then
+            celebrated = s
+            UI:CoinShower(UI.frame)
+        end
+    else
+        banner:Hide()
+    end
+
+    quitButton:SetShown(not ended)
+    quitButton:SetText(s.isLocal and "Quit" or "Forfeit")
     rematchButton:SetShown(ended and s:IsHost())
+    backButton:SetShown(ended)
+    Say(s)
 end
 
-UI:RegisterPanel("game", "Game", function(container)
+UI:RegisterPanel("game", nil, function(container)
     panel = CreateFrame("Frame", nil, container)
-    chips = {}
+    plates = {}
 
-    statusText = UI.Label(panel, "", "GameFontNormalLarge")
-    statusText:SetPoint("TOPLEFT", 0, -34)
+    vsText = UI.Text(panel, "VS", { fancy = true, size = 34, justify = "CENTER" })
+    vsText:SetPoint("TOP", 0, -2)
+    vsText:SetTextColor(1, 0.8, 0.25)
 
-    timerText = UI.Label(panel, "", "GameFontHighlightLarge")
-    timerText:SetPoint("TOPRIGHT", -4, -34)
+    -- The turn timer is a fuse that burns down.
+    fuse = CreateFrame("StatusBar", nil, panel)
+    fuse:SetSize(150, 8)
+    fuse:SetPoint("TOP", vsText, "BOTTOM", 0, -2)
+    fuse:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+    fuse:SetMinMaxValues(0, 1)
+    local fuseBg = fuse:CreateTexture(nil, "BACKGROUND")
+    fuseBg:SetColorTexture(0, 0, 0, 0.5)
+    fuseBg:SetAllPoints()
+    fuseText = UI.Text(panel, "", { font = "GameFontHighlightSmall", justify = "CENTER" })
+    fuseText:SetPoint("TOP", fuse, "BOTTOM", 0, -2)
+
+    statusText = UI.Text(panel, "", { fancy = true, size = 20, justify = "CENTER" })
+    statusText:SetPoint("TOP", 0, -64)
 
     area = CreateFrame("Frame", nil, panel)
-    area:SetPoint("TOPLEFT", 0, -60)
-    area:SetPoint("BOTTOMRIGHT", 0, 38)
+    area:SetPoint("TOPLEFT", 0, -90)
+    area:SetPoint("BOTTOMRIGHT", 0, 0)
 
-    forfeitButton = UI.Button(panel, "Forfeit", 100, 26, function()
+    banner = UI.Ribbon(panel, "", 460, 92, "gold")
+    banner:SetPoint("CENTER", area, "CENTER", 0, 10)
+    banner:SetFrameLevel(panel:GetFrameLevel() + 40)
+    banner.text:SetTextColor(1, 1, 0.9)
+    UI.AddPopIn(banner)
+    banner:Hide()
+
+    -- Buttons live in the window's bottom-right corner.
+    local actions = CreateFrame("Frame", nil, panel)
+    actions:SetSize(1, 1)
+    actions:SetPoint("BOTTOMRIGHT", UI.frame.actions, "BOTTOMRIGHT")
+    quitButton = UI.Button(actions, "Forfeit", 110, 36, function()
         local s = GG.Lobby.active
         if not s then return end
-        if s.status == "ended" then
-            GG.Lobby:Close(s)
-        elseif s.isLocal then
-            GG.Lobby:Close(s)
-        else
-            GG.Lobby:Leave(s)
-        end
-    end)
-    forfeitButton:SetPoint("BOTTOMRIGHT", 0, 4)
-
-    rematchButton = UI.Button(panel, "Rematch", 100, 26, function()
+        if s.isLocal then GG.Lobby:Close(s) else GG.Lobby:Leave(s) end
+    end, "danger")
+    quitButton:SetPoint("BOTTOMRIGHT")
+    backButton = UI.Button(actions, "Back to games", 150, 36, function()
+        local s = GG.Lobby.active
+        if s then GG.Lobby:Close(s) end
+    end, "wood")
+    backButton:SetPoint("BOTTOMRIGHT")
+    rematchButton = UI.Button(actions, "Rematch!", 130, 36, function()
         local s = GG.Lobby.active
         if s then
             local ok, err = GG.Lobby:Rematch(s)
-            if not ok and err then GG:Print(err) end
+            if not ok and err then GG:Print(err); UI:Say(err, true) end
         end
-    end)
-    rematchButton:SetPoint("RIGHT", forfeitButton, "LEFT", -8, 0)
+    end, "primary")
+    rematchButton:SetPoint("RIGHT", backButton, "LEFT", -8, 0)
 
-    -- Countdown: updated every frame while the panel is visible.
+    -- Fuse: updated every frame while visible.
     panel:SetScript("OnUpdate", function()
         local s = GG.Lobby.active
         local remaining = s and s.status == "playing" and GG.Turns:Remaining(s)
-        if remaining then
-            local txt = Util.FormatSeconds(remaining)
-            timerText:SetText(remaining < 10 and UI.Red(txt) or txt)
+        local length = s and s.turn and s.turn.length
+        if remaining and length and length > 0 then
+            local f = remaining / length
+            fuse:SetValue(f)
+            fuse:SetStatusBarColor(1, 0.35 + 0.5 * f, 0.1)
+            fuseText:SetText(remaining < 10 and UI.Red(Util.FormatSeconds(remaining)) or Util.FormatSeconds(remaining))
+            fuse:Show()
         else
-            timerText:SetText("")
+            fuse:Hide()
+            fuseText:SetText("")
         end
     end)
 
@@ -155,7 +243,14 @@ UI:RegisterPanel("game", "Game", function(container)
     GG.RegisterCallback(listener, "SESSION_UPDATED", Refresh)
     GG.RegisterCallback(listener, "SESSION_ENDED", Refresh)
     GG.RegisterCallback(listener, "COMM_LOCK_CHANGED", Refresh)
-    GG.RegisterCallback(listener, "SESSION_STARTED", function() customStatus = nil; Refresh() end)
-    GG.RegisterCallback(listener, "SESSION_CLOSED", function() customStatus = nil end)
+    GG.RegisterCallback(listener, "SESSION_STARTED", function()
+        customStatus = nil
+        banner:Hide()
+        Refresh()
+    end)
+    GG.RegisterCallback(listener, "SESSION_CLOSED", function()
+        customStatus = nil
+        banner:Hide()
+    end)
     return panel
 end)

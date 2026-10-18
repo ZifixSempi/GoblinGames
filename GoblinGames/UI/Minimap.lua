@@ -25,7 +25,7 @@ end
 
 local function ShowTooltip(owner)
     GameTooltip:SetOwner(owner, "ANCHOR_LEFT")
-    GameTooltip:AddLine("GoblinGames")
+    GameTooltip:AddLine("Goblin Games")
     GameTooltip:AddLine("Left-click: open", 1, 1, 1)
     GameTooltip:AddLine("Right-click: settings", 1, 1, 1)
     local s = GG.Lobby.active
@@ -52,10 +52,9 @@ local function Build()
     bg:SetPoint("TOPLEFT", 7, -5)
 
     local icon = button:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(17, 17)
-    icon:SetPoint("TOPLEFT", 7, -6)
-    icon:SetTexture("Interface\\Icons\\INV_Misc_Dice_02")
-    icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+    icon:SetSize(21, 21)
+    icon:SetPoint("TOPLEFT", 6, -5)
+    icon:SetTexture(UI.MEDIA .. "GoblinFace")
 
     local border = button:CreateTexture(nil, "OVERLAY")
     border:SetSize(53, 53)

@@ -1,99 +1,140 @@
 --[[----------------------------------------------------------------------------
   GoblinGames/UI/GamesPanel.lua
 
-  The game picker: one tile per game in the catalog. Installed games get
-  "Host" and "Practice" buttons; the rest say "Coming soon".
+  The game picker. Installed games get a big parchment card with two clear
+  choices: "Play with friends" and "Practice". Games that aren't out yet sit
+  on a "Coming soon" shelf as little coins, so they don't clutter the page.
 ------------------------------------------------------------------------------]]
 
 local _, GG = ...
 
 local UI = GG.UI
 
-local COLS = 2
-local TILE_W, TILE_H = 254, 74
-local GAP = 8
+local CARD_W, CARD_H, GAP = 340, 150, 12
+
+local SAY = "Pick a game! |cff1f7a12Play with friends|r invites your group or guild. |cff1f7a12Practice|r is just you vs. the Training Dummy."
 
 local function Report(ok, err)
-    if not ok and err then GG:Print(err) end
+    if not ok and err then GG:Print(err); UI:Say(err, true) end
 end
 
-local function BuildTile(parent, entry)
-    local tile = UI.Panel(parent, "tile")
-    tile:SetSize(TILE_W, TILE_H)
+local function PlayerText(entry)
+    if entry.max >= 100 then return entry.min .. "+ players" end
+    if entry.min == entry.max then return entry.min .. " players" end
+    return entry.min .. "-" .. entry.max .. " players"
+end
 
-    local icon = tile:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(40, 40)
-    icon:SetPoint("TOPLEFT", 10, -10)
-    icon:SetTexture(entry.icon)
+local function BuildCard(parent, entry)
+    local card = UI.Card(parent)
+    card:SetSize(CARD_W, CARD_H)
 
-    local name = UI.Label(tile, entry.name, "GameFontNormal")
-    name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 8, 0)
+    local coin = UI.CoinIcon(card, 70, entry.icon)
+    coin:SetPoint("TOPLEFT", 12, -12)
 
-    local players = UI.Label(tile, "", "GameFontNormalSmall")
-    players:SetPoint("LEFT", name, "RIGHT", 6, 0)
-    if entry.max >= 100 then
-        players:SetText(UI.Grey(entry.min .. "+ players"))
-    elseif entry.min == entry.max then
-        players:SetText(UI.Grey(entry.min .. " players"))
-    else
-        players:SetText(UI.Grey(entry.min .. "-" .. entry.max .. " players"))
-    end
+    local name = UI.Text(card, entry.name, { fancy = true, size = 22, ink = true })
+    name:SetPoint("TOPLEFT", coin, "TOPRIGHT", 10, -4)
 
-    local desc = UI.Label(tile, entry.desc, "GameFontHighlightSmall")
-    desc:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -4)
-    desc:SetWidth(TILE_W - 70)
+    local players = UI.Text(card, PlayerText(entry), { ink = true, font = "GameFontNormalSmall" })
+    players:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -2)
+    players:SetTextColor(0.48, 0.38, 0.25)
 
-    local host = UI.Button(tile, "Host", 70, 20, function()
+    local desc = UI.Text(card, entry.desc, { ink = true, font = "GameFontHighlightSmall" })
+    desc:SetPoint("TOPLEFT", players, "BOTTOMLEFT", 0, -6)
+    desc:SetWidth(CARD_W - 110)
+
+    local play = UI.Button(card, "Play with friends", 170, 32, function()
         Report(GG.Lobby:CreateHosted(entry.id))
-    end)
-    host:SetPoint("BOTTOMRIGHT", -8, 8)
+    end, "primary")
+    play:SetPoint("BOTTOMLEFT", 14, 14)
 
-    local practice = UI.Button(tile, "Practice", 80, 20, function()
-        Report(GG.Lobby:StartPractice(entry.id))
-    end)
-    practice:SetPoint("RIGHT", host, "LEFT", -4, 0)
-
-    local soon = UI.Label(tile, UI.Grey("Coming soon"), "GameFontNormalSmall")
-    soon:SetPoint("BOTTOMRIGHT", -12, 12)
-
-    function tile:Refresh()
-        local installed = GG:IsGameInstalled(entry.id)
-        host:SetShown(installed)
-        practice:SetShown(installed)
-        soon:SetShown(not installed)
-        icon:SetDesaturated(not installed)
+    if entry.practice then
+        local practice = UI.Button(card, "Practice", 128, 32, function()
+            Report(GG.Lobby:StartPractice(entry.id))
+        end, "wood")
+        practice:SetPoint("LEFT", play, "RIGHT", 8, 0)
+        practice.tooltip = "Play the Training Dummy. Just you, no invites, doesn't count toward stats."
     end
-    return tile
+    play.tooltip = "Open a lobby and invite people. The game starts once enough of them accept."
+    return card
+end
+
+local function BuildSoonCoin(parent, entry)
+    local coin = UI.CoinIcon(parent, 46, entry.icon)
+    coin.icon:SetDesaturated(true)
+    coin.icon:SetVertexColor(0.8, 0.8, 0.8)
+    coin:EnableMouse(true)
+    coin:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine(entry.name)
+        GameTooltip:AddLine(entry.desc, 1, 1, 1, true)
+        GameTooltip:AddLine("Coming soon!", 0.6, 0.9, 0.4)
+        GameTooltip:Show()
+    end)
+    coin:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return coin
 end
 
 UI:RegisterPanel("games", "Games", function(container)
     local panel = CreateFrame("Frame", nil, container)
 
-    local heading = UI.Label(panel, "Pick a game", "GameFontNormalLarge")
-    heading:SetPoint("TOPLEFT", 4, 0)
+    local heading = UI.Text(panel, "Pick yer game!", { fancy = true, size = 24 })
+    heading:SetPoint("TOPLEFT", 6, -4)
 
-    local hint = UI.Label(panel, UI.Grey("Host invites players from your group, guild or by name. Practice plays a Training Dummy, offline."), "GameFontHighlightSmall")
-    hint:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -4)
-
-    -- Ten tiles don't fit on one screen, so they sit in a scroll frame.
+    -- Cards for installed games (scrolls once there are more than four).
     local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", 0, -44)
-    scroll:SetPoint("BOTTOMRIGHT", -24, 0)
+    scroll:SetPoint("TOPLEFT", 0, -40)
+    scroll:SetPoint("BOTTOMRIGHT", -24, 74)
     local grid = CreateFrame("Frame", nil, scroll)
+    grid:SetSize(CARD_W * 2 + GAP, 1)
     scroll:SetScrollChild(grid)
-    local rows = math.ceil(#GG.CATALOG / COLS)
-    grid:SetSize(COLS * (TILE_W + GAP), rows * (TILE_H + GAP))
 
-    local tiles = {}
-    for i, entry in ipairs(GG.CATALOG) do
-        local tile = BuildTile(grid, entry)
-        local col, row = (i - 1) % COLS, math.floor((i - 1) / COLS)
-        tile:SetPoint("TOPLEFT", col * (TILE_W + GAP), -row * (TILE_H + GAP))
-        tiles[i] = tile
+    -- Coming-soon shelf along the bottom.
+    local shelf = CreateFrame("Frame", nil, panel)
+    shelf:SetPoint("BOTTOMLEFT", 0, 0)
+    shelf:SetPoint("BOTTOMRIGHT", 0, 0)
+    shelf:SetHeight(66)
+    local shelfBg = shelf:CreateTexture(nil, "BACKGROUND")
+    shelfBg:SetColorTexture(0, 0, 0, 0.3)
+    shelfBg:SetAllPoints()
+    local soonLabel = UI.Text(shelf, "Coming\nsoon!", { fancy = true, size = 16, justify = "CENTER" })
+    soonLabel:SetPoint("LEFT", 12, 0)
+
+    local cards, soon = {}, {}
+
+    local function Layout()
+        for _, c in pairs(cards) do c:Hide() end
+        for _, c in pairs(soon) do c:Hide() end
+        local n, s = 0, 0
+        for _, entry in ipairs(GG.CATALOG) do
+            if GG:IsGameInstalled(entry.id) then
+                local card = cards[entry.id] or BuildCard(grid, entry)
+                cards[entry.id] = card
+                local col, row = n % 2, math.floor(n / 2)
+                card:ClearAllPoints()
+                card:SetPoint("TOPLEFT", col * (CARD_W + GAP), -row * (CARD_H + GAP))
+                card:Show()
+                n = n + 1
+            else
+                local coin = soon[entry.id] or BuildSoonCoin(shelf, entry)
+                soon[entry.id] = coin
+                coin:ClearAllPoints()
+                coin:SetPoint("LEFT", 96 + s * 52, 0)
+                coin:Show()
+                s = s + 1
+            end
+        end
+        grid:SetHeight(math.max(1, math.ceil(n / 2) * (CARD_H + GAP)))
+        shelf:SetShown(s > 0)
     end
 
     panel:SetScript("OnShow", function()
-        for _, tile in ipairs(tiles) do tile:Refresh() end
+        Layout()
+        UI:Say(SAY)
     end)
     return panel
+end)
+
+-- The "current" tab has no panel of its own: it shows the lobby or the game.
+UI:RegisterPanel("current", "Your Game", function(container)
+    return CreateFrame("Frame", nil, container)
 end)
