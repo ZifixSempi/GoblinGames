@@ -6,7 +6,7 @@
 
 - New game: **Connect 6**. 19x19 board, the first move is one stone, then two stones per turn, and six or more in a row wins.
 - Stones take their owner's faction colour, with a gold or silver rim per seat. The last turn's stones glow, and the winning line lights up.
-- A ghost stone follows your cursor on your turn, and side panel shows players, stones left this turn, and the rules.
+- A ghost stone follows your cursor on your turn, and a side panel shows players, stones left this turn, and the rules.
 - Practice bot that blocks threats and finishes its own sixes.
 - Core: a compact game header for big boards (`compactHeader = true`).
 - Fixed: the window's close button now closes the window.
