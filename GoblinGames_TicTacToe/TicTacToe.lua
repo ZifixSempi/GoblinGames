@@ -141,7 +141,7 @@ local function BuildBoard()
         end
         cell.shake = shake
 
-        cell:SetScript("OnClick", OnCellClick)
+        cell:SetScript("OnClick", function(self) GG:Safe("Tic-Tac-Toe", OnCellClick, self) end)
         cells[i] = cell
     end
 

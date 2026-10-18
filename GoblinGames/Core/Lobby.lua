@@ -117,7 +117,7 @@ local function DeliverState(session, op, args, isPrivate)
         local coreHandler = Lobby.coreStateOps[op]
         if coreHandler then coreHandler(session, args) end
     elseif session.def and session.def.OnState then
-        session.def.OnState(session, op, args, isPrivate)
+        GG:CallModule(session.def, "OnState", session, op, args, isPrivate)
     end
 end
 
@@ -139,7 +139,7 @@ end
 function Session:SendAction(op, ...)
     if self.status ~= "playing" then return end
     if self:IsHost() then
-        if self.def.OnAction then self.def.OnAction(self, self:Me(), op, ToArgs(...)) end
+        GG:CallModule(self.def, "OnAction", self, self:Me(), op, ToArgs(...))
     else
         Comm:SendToPlayer(self.host, "ALERT", "A", self.id, op, ...)
     end
@@ -148,7 +148,7 @@ end
 --- (Host, practice games only) Make a move on behalf of a bot player.
 function Session:ActAs(name, op, ...)
     if not self:IsHost() or not Util.IsBot(name) then return end
-    if self.def.OnAction then self.def.OnAction(self, name, op, ToArgs(...)) end
+    GG:CallModule(self.def, "OnAction", self, name, op, ToArgs(...))
 end
 
 --- (Host) Tell every player about a state change, including ourselves.
@@ -338,7 +338,7 @@ function Lobby:Begin(session)
     session.status = "playing"
     session.seq = 0
     Fire("SESSION_STARTED", session)
-    session.def.OnSessionStart(session)
+    GG:CallModule(session.def, "OnSessionStart", session)
 end
 
 --- Leave the current lobby or forfeit the current game.
@@ -381,7 +381,7 @@ function Lobby:Close(session)
     self.sessions[session.id] = nil
     if self.active == session then self.active = nil end
     session.closed = true
-    if session.def and session.def.OnSessionClosed then session.def.OnSessionClosed(session) end
+    GG:CallModule(session.def, "OnSessionClosed", session)
     Fire("SESSION_CLOSED", session)
 end
 
@@ -392,7 +392,7 @@ function Lobby:HandlePlayerLeft(session, name, reason)
     session:Broadcast("_LEFT", name, reason or "left")
 
     -- Let the module decide if it can carry on (e.g. 5-player games).
-    if session.def.OnPlayerLeft and session.def.OnPlayerLeft(session, name, reason) then
+    if GG:CallModule(session.def, "OnPlayerLeft", session, name, reason) then
         return
     end
 
@@ -579,7 +579,7 @@ Comm:RegisterOp("A", function(sender, sid, args)
     if not s or s.status ~= "playing" or not s:IsActive(sender) then return end
     s.offlineSince[sender] = nil
     local op = table.remove(args, 1)
-    if s.def.OnAction then s.def.OnAction(s, sender, op, args) end
+    GG:CallModule(s.def, "OnAction", s, sender, op, args)
 end)
 
 -- A state change from the host, to everyone.
@@ -620,7 +620,7 @@ Comm:RegisterOp("SYNC", function(sender, sid)
     local s = HostedSession(sid)
     if not s or s.status == "lobby" or not s:IsActive(sender) then return end
     s.offlineSince[sender] = nil
-    if s.def.OnSyncRequest then s.def.OnSyncRequest(s, sender) end
+    GG:CallModule(s.def, "OnSyncRequest", s, sender)
     GG.Turns:SendTo(s, sender)
     s:SendTo(sender, "_SEQ", s.seq)
 end)
@@ -687,7 +687,7 @@ Lobby.coreStateOps["_END"] = function(s, args)
         GG:Print(s.catalog.name .. " ended" .. (result.reason and (": " .. result.reason) or "") .. ".")
     end
 
-    if s.def.OnSessionEnd then s.def.OnSessionEnd(s, result) end
+    GG:CallModule(s.def, "OnSessionEnd", s, result)
     GG:Fire("SESSION_ENDED", s, result)
 end
 

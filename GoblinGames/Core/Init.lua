@@ -54,6 +54,47 @@ function GG:Debug(...)
 end
 
 -------------------------------------------------------------------------------
+-- Error safety net
+--
+-- WoW hides Lua errors from addons unless the player turns on the
+-- "scriptErrors" setting, so a bug would just make a game silently stop.
+-- Every call into a game module goes through GG:CallModule, which catches
+-- errors, prints a short message in chat (once per error), and still hands
+-- the full error to WoW's normal error handler.
+-------------------------------------------------------------------------------
+local reportedErrors = {}
+
+local function Report(label, err)
+    err = tostring(err)
+    local firstLine = err:match("^[^\n]+") or err
+    if not reportedErrors[firstLine] then
+        reportedErrors[firstLine] = true
+        GG:Print("|cffff5050" .. label .. " hit a bug:|r " .. firstLine)
+        GG:Print("Please send that line to the addon author. Thanks!")
+    end
+    -- Also show it in the normal Lua error window, if the player has one.
+    pcall(geterrorhandler(), err)
+end
+
+--- Call fn(...) safely. On error: report it and return nil.
+function GG:Safe(label, fn, ...)
+    local results = { xpcall(fn, function(e)
+        return tostring(e) .. (debugstack and ("\n" .. debugstack(2, 8, 0)) or "")
+    end, ...) }
+    if results[1] then return unpack(results, 2) end
+    Report(label, results[2])
+    return nil
+end
+
+--- Call a game module's callback (def[method]) safely.
+function GG:CallModule(def, method, ...)
+    local fn = def and def[method]
+    if not fn then return nil end
+    local name = (def.catalog and def.catalog.name) or def.id or "A game"
+    return self:Safe(name .. " (" .. method .. ")", fn, ...)
+end
+
+-------------------------------------------------------------------------------
 -- Event dispatcher
 --
 -- WoW delivers game events (PLAYER_LOGIN, GROUP_ROSTER_UPDATE ...) to frames

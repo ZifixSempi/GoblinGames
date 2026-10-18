@@ -172,5 +172,51 @@ do
     NoErrors(alice)
 end
 
+print("\n== Clicking the columns (the real UI path)")
+do
+    if A.Lobby.active then A.Lobby:Close(A.Lobby.active) end
+    local p = A.Lobby:StartPractice("connect6")
+    -- Find the column buttons the module built.
+    local buttons = {}
+    for _, f in ipairs(alice.frames) do
+        if f.col and f._scripts.OnClick then buttons[f.col] = f end
+    end
+    check(#buttons == COLS, "found all " .. COLS .. " column buttons")
+    -- Wait for our turn (the dummy may go first).
+    for _ = 1, 10 do if A.Turns:IsMyTurn(p) then break end Sim.Advance(0.5) end
+    local before = 0
+    for i = 1, COLS * ROWS do if p.data.board[i] ~= 0 then before = before + 1 end end
+    buttons[4]:Click("LeftButton")
+    Sim.Advance(0.2)
+    local mySeat = p:SeatOf(p:Me())
+    local landed = false
+    for row = ROWS, 1, -1 do
+        if p.data.board[Idx(4, row)] == mySeat then landed = true; break end
+    end
+    check(landed, "clicking column 4 dropped my chip into column 4")
+    check(not A.Turns:IsMyTurn(p), "and the turn passed to the dummy")
+    Sim.Advance(2)
+    local after = 0
+    for i = 1, COLS * ROWS do if p.data.board[i] ~= 0 then after = after + 1 end end
+    check(after == before + 2, "the dummy answered with its own chip")
+    NoErrors(alice)
+    A.Lobby:Close(p)
+end
+
+print("\n== Errors in a game show up in chat")
+do
+    local def = A:GetGame("connect6")
+    local original = def.OnState
+    def.OnState = function() error("test explosion") end
+    local p = A.Lobby:StartPractice("connect6")
+    for _ = 1, 10 do if A.Turns:IsMyTurn(p) then break end Sim.Advance(0.5) end
+    p:SendAction("DROP", 1)
+    Sim.Advance(0.2)
+    check(Sim.Chat(alice, "hit a bug"), "a 'hit a bug' message was printed in chat")
+    def.OnState = original
+    A.Lobby:Close(p)
+    alice.errors = {}
+end
+
 print(("\n%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

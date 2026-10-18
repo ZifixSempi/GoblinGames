@@ -117,7 +117,7 @@ GG.Lobby.coreStateOps["_TURN"] = function(session, args)
         local turnNumber = number
         C_Timer.After(BOT_DELAY, function()
             if session.status == "playing" and session.turn.number == turnNumber then
-                session.def.BotAction(session, current)
+                GG:CallModule(session.def, "BotAction", session, current)
             end
         end)
     end
@@ -157,7 +157,7 @@ local function OnTick()
             t.timedOut = true
             local who = t.current
             if session.def.OnTurnTimeout then
-                session.def.OnTurnTimeout(session, who)
+                GG:CallModule(session.def, "OnTurnTimeout", session, who)
             else
                 GG.Lobby:HandlePlayerLeft(session, who, "timeout")
             end
@@ -169,7 +169,7 @@ local function OnTick()
             GG:Print("The host didn't come back, so the game was abandoned.")
             session.status = "ended"
             session.result = { winners = {}, reason = "host disconnected" }
-            if session.def.OnSessionEnd then session.def.OnSessionEnd(session, session.result) end
+            GG:CallModule(session.def, "OnSessionEnd", session, session.result)
             GG:Fire("SESSION_ENDED", session, session.result)
         end
     end

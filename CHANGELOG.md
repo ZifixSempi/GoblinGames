@@ -10,6 +10,8 @@
 - Practice bot: it takes wins, blocks yours, and avoids setting you up.
 - Core: a compact game header for big boards (`compactHeader = true`).
 - Fixed: the window's close button now closes the window.
+- Fixed: Connect 6 chips not appearing. Chips and the rack now share one frame with fixed draw layers.
+- New: if a game hits a Lua error, Goblin Games prints a short "hit a bug" line in chat instead of failing silently.
 - New logo and goblin art based on Zifix's character.
 
 ### Milestone 1: core and Tic-Tac-Toe

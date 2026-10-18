@@ -128,22 +128,54 @@ end
 local Refresh -- defined below
 
 --- A chip: tinted base + white edge notches + faction crest + seat rim.
---- Built as a little frame so one animation moves all its layers together.
-local function MakeChip(parent, size)
-    local chip = CreateFrame("Frame", nil, parent)
-    chip:SetSize(size, size)
-    chip.base = chip:CreateTexture(nil, "ARTWORK", nil, 0)
-    chip.base:SetTexture(UI.MEDIA .. "Chip")
-    chip.base:SetAllPoints()
-    chip.notches = chip:CreateTexture(nil, "ARTWORK", nil, 1)
-    chip.notches:SetTexture(UI.MEDIA .. "ChipNotches")
-    chip.notches:SetAllPoints()
-    chip.crest = chip:CreateTexture(nil, "ARTWORK", nil, 2)
+--- All four are textures on `parent`, in the given draw layer, stacked with
+--- sublevels. Using draw layers (not separate frames) makes the stacking
+--- order fixed: WoW can renumber frame levels, but never reorders layers.
+local function MakeChip(parent, size, layer)
+    layer = layer or "ARTWORK"
+    local chip = { parts = {} }
+    local function Part(sub, file)
+        local t = parent:CreateTexture(nil, layer, nil, sub)
+        if file then t:SetTexture(UI.MEDIA .. file) end
+        chip.parts[#chip.parts + 1] = t
+        return t
+    end
+    chip.base = Part(0, "Chip")
+    chip.base:SetSize(size, size)
+    chip.notches = Part(1, "ChipNotches")
+    chip.notches:SetAllPoints(chip.base)
+    chip.crest = Part(2)
     chip.crest:SetSize(size * 0.52, size * 0.52)
-    chip.crest:SetPoint("CENTER")
-    chip.rim = chip:CreateTexture(nil, "ARTWORK", nil, 3)
-    chip.rim:SetTexture(UI.MEDIA .. "StoneRim")
-    chip.rim:SetAllPoints()
+    chip.crest:SetPoint("CENTER", chip.base, "CENTER")
+    chip.rim = Part(3, "StoneRim")
+    chip.rim:SetAllPoints(chip.base)
+    function chip:SetPoint(...) self.base:ClearAllPoints(); self.base:SetPoint(...) end
+    function chip:ClearAllPoints() self.base:ClearAllPoints() end
+    function chip:Show() for _, t in ipairs(self.parts) do t:Show() end end
+    function chip:Hide() for _, t in ipairs(self.parts) do t:Hide() end end
+    function chip:IsShown() return self.base:IsShown() end
+    function chip:SetAlpha(a) for _, t in ipairs(self.parts) do t:SetAlpha(a) end end
+    -- Falling animation: every layer gets the same jump-up-then-drop.
+    chip.falls = {}
+    for _, t in ipairs(chip.parts) do
+        local g = t:CreateAnimationGroup()
+        local up = g:CreateAnimation("Translation")
+        up:SetDuration(0.001)
+        up:SetOrder(1)
+        local down = g:CreateAnimation("Translation")
+        down:SetSmoothing("IN")
+        down:SetOrder(2)
+        chip.falls[#chip.falls + 1] = { group = g, up = up, down = down }
+    end
+    function chip:Fall(distance, seconds)
+        for _, f in ipairs(self.falls) do
+            f.up:SetOffset(0, distance)
+            f.down:SetOffset(0, -distance)
+            f.down:SetDuration(seconds)
+            f.group:Stop()
+            f.group:Play()
+        end
+    end
     return chip
 end
 
@@ -173,17 +205,17 @@ local function BuildRack()
     rack:SetPoint("TOPLEFT", 14, -2)
 
     -- Dark inside of the rack: what you see through an empty hole.
-    local back = rack:CreateTexture(nil, "BACKGROUND")
+    local back = rack:CreateTexture(nil, "BACKGROUND", nil, -6)
     back:SetColorTexture(0.06, 0.05, 0.08, 1)
     back:SetPoint("TOPLEFT", PAD, -PAD)
     back:SetPoint("BOTTOMRIGHT", -PAD, PAD)
 
-    -- Checkers live on their own frame BEHIND the panel frame.
-    local checkerLayer = CreateFrame("Frame", nil, rack)
-    checkerLayer:SetAllPoints()
-    local panel = CreateFrame("Frame", nil, rack)
-    panel:SetAllPoints()
-    panel:SetFrameLevel(checkerLayer:GetFrameLevel() + 2)
+    -- Everything is drawn on the rack frame itself, stacked by draw layer:
+    --   BACKGROUND  the dark inside of the rack
+    --   BORDER      the chips (behind the panel, seen through the holes)
+    --   ARTWORK     the golden panel with its holes
+    --   OVERLAY     glows for the last move / winning line
+    local panel = rack
 
     -- The golden panel: one hole tile per cell, plus a solid rim around it.
     holes = {}
@@ -197,19 +229,9 @@ local function BuildRack()
         tile:SetPoint("TOPLEFT", x, y)
 
         local h = {}
-        h.chip = MakeChip(checkerLayer, CELL - 6)
+        h.chip = MakeChip(rack, CELL - 6, "BORDER")
         h.chip:SetPoint("CENTER", rack, "TOPLEFT", x + CELL / 2, y - CELL / 2)
         h.chip:Hide()
-
-        -- Falling animation: jump up to the top row instantly, then drop.
-        local g = h.chip:CreateAnimationGroup()
-        h.up = g:CreateAnimation("Translation")
-        h.up:SetDuration(0)
-        h.up:SetOrder(1)
-        h.down = g:CreateAnimation("Translation")
-        h.down:SetSmoothing("IN")
-        h.down:SetOrder(2)
-        h.fall = g
 
         -- Glow for the last move and the winning line (on top of the panel).
         h.mark = panel:CreateTexture(nil, "OVERLAY")
@@ -230,14 +252,14 @@ local function BuildRack()
         t:SetPoint(e[1]); t:SetPoint(e[2])
         if e[4] then t:SetHeight(e[3]) else t:SetWidth(e[3]) end
     end
-    local outline = panel:CreateTexture(nil, "BACKGROUND")
+    local outline = panel:CreateTexture(nil, "BACKGROUND", nil, -7)
     outline:SetColorTexture(0.35, 0.22, 0.04, 1)
     outline:SetPoint("TOPLEFT", -2, 2)
     outline:SetPoint("BOTTOMRIGHT", 2, -2)
 
     -- The stand's two feet, in the theme's accent colour.
     for _, side in ipairs({ "LEFT", "RIGHT" }) do
-        local foot = rack:CreateTexture(nil, "BACKGROUND", nil, -1)
+        local foot = rack:CreateTexture(nil, "BACKGROUND", nil, -8)
         foot:SetTexture(UI.MEDIA .. "Button")
         foot:SetSize(70, 18)
         foot:SetPoint("TOP", rack, "BOTTOM" .. side, side == "LEFT" and 18 or -18, 4)
@@ -251,17 +273,16 @@ local function BuildRack()
         local b = CreateFrame("Button", nil, rack)
         b:SetSize(CELL, ROWS * CELL)
         b:SetPoint("TOPLEFT", PAD + (col - 1) * CELL, -PAD)
-        b:SetFrameLevel(panel:GetFrameLevel() + 2)
         b.col = col
         local glow = b:CreateTexture(nil, "HIGHLIGHT")
         glow:SetColorTexture(1, 1, 0.8, 0.10)
         glow:SetAllPoints()
-        b.ghost = MakeChip(b, CELL - 6)
+        b.ghost = MakeChip(b, CELL - 6, "OVERLAY")
         b.ghost:SetAlpha(0.5)
         b.ghost:Hide()
         b:SetScript("OnEnter", function(self) hoverCol = self.col; Refresh() end)
         b:SetScript("OnLeave", function(self) if hoverCol == self.col then hoverCol = nil; Refresh() end end)
-        b:SetScript("OnClick", OnColumnClick)
+        b:SetScript("OnClick", function(self) GG:Safe("Connect 6", OnColumnClick, self) end)
         local shake = b:CreateAnimationGroup()
         for n, dx in ipairs({ 4, -8, 6, -2 }) do
             local t = shake:CreateAnimation("Translation")
@@ -285,9 +306,9 @@ local function BuildRack()
         row:SetSize(250, 40)
         row:SetPoint("TOPLEFT", 14, -48 - (seat - 1) * 46)
         row.chip = MakeChip(row, 34)
-        row.chip:SetPoint("LEFT", 2, 0)
+        row.chip:SetPoint("LEFT", row, "LEFT", 2, 0)
         row.name = UI.Text(row, "", { ink = true })
-        row.name:SetPoint("TOPLEFT", row.chip, "TOPRIGHT", 8, -2)
+        row.name:SetPoint("TOPLEFT", row.chip.base, "TOPRIGHT", 8, -2)
         row.sub = UI.Text(row, "", { ink = true, font = "GameFontHighlightSmall" })
         row.sub:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
         row.glow = row:CreateTexture(nil, "OVERLAY")
@@ -310,14 +331,10 @@ end
 
 -- Make a checker fall from the top row into hole i.
 local function DropAnimation(i)
-    local h = holes[i]
     local _, row = ColRow(i)
     local dist = (row - 1) * CELL
     if dist <= 0 then return end
-    local t = 0.08 + 0.045 * (row - 1)
-    h.up:SetOffset(0, dist); h.down:SetOffset(0, -dist); h.down:SetDuration(t)
-    h.fall:Stop()
-    h.fall:Play()
+    holes[i].chip:Fall(dist, 0.08 + 0.045 * (row - 1))
 end
 
 function Refresh()
