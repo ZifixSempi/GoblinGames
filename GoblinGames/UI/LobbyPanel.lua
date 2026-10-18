@@ -58,6 +58,20 @@ UI:RegisterPanel("lobby", nil, function(container)
         if nameBox then nameBox:SetText("") end
     end
 
+    -- Open games (Guild Bingo): one button tells the whole guild.
+    local announceButton = UI.Button(inviteCard, "Announce to guild!", 170, 30, function()
+        local s = GG.Lobby.active
+        if not s then return end
+        local ok, err = GG.Lobby:Announce(s)
+        if ok then
+            UI:Say("Announced! Everyone in the guild with Goblin Games gets a popup to join.", true)
+        elseif err then
+            UI:Say(err, true)
+        end
+    end, "primary")
+    announceButton:SetPoint("TOPRIGHT", -14, -10)
+    announceButton.tooltip = "Sends a join popup to every guild member who has Goblin Games."
+
     local groupLabel = UI.Text(inviteCard, "From your group:", { ink = true, font = "GameFontNormalSmall" })
     groupLabel:SetPoint("TOPLEFT", inviteCard.heading, "BOTTOMLEFT", 0, -6)
     groupLabel:SetTextColor(0.48, 0.38, 0.25)
@@ -210,6 +224,8 @@ UI:RegisterPanel("lobby", nil, function(container)
         ribbon:SetText(entry.name)
 
         local isHost = s:IsHost()
+        announceButton:SetShown(isHost and s.open == true)
+        inviteCard.heading:SetText(s.open and "1. Gather players" or "1. Invite players")
         inviteCard:SetShown(isHost)
         whoCard:SetShown(isHost)
         startButton:SetShown(isHost)
@@ -276,8 +292,11 @@ UI:RegisterPanel("lobby", nil, function(container)
         playerList:SetItems(items)
 
         -- Tell the host exactly what's next.
-        if GG.Lobby:CanStart(s) then
-            UI:Say("Enough players! Press |cff1f7a12Start game!|r whenever you're ready.")
+        if s.open and not s.announced and GG.Lobby.CountAccepted(s) == 0 then
+            UI:Say("Press |cff1f7a12Announce to guild!|r and everyone with Goblin Games gets a popup to join.")
+        elseif GG.Lobby:CanStart(s) then
+            UI:Say("Enough players! Press |cff1f7a12Start game!|r whenever you're ready." ..
+                (s.open and " Latecomers can still join later." or ""))
         elseif waitingOn then
             UI:Say("Waiting for " .. Util.ShortName(waitingOn) .. " to accept..." ..
                 (entry.max == 2 and " The game starts the moment they do." or ""))

@@ -87,6 +87,7 @@ local function Refresh()
     local entry = GG:GetCatalogEntry(invite.gameId)
     local stake = tonumber(invite.options and invite.options.stake) or 0
     local text = Util.ShortName(invite.host) .. " wants to play " .. entry.name .. "!"
+    if invite.open then text = Util.ShortName(invite.host) .. " opened " .. entry.name .. "! Join in?" end
     if stake > 0 then
         text = text .. "\n|cffa51d12Gold stake: " .. stake .. "g|r"
     end

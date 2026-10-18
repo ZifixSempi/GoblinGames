@@ -68,6 +68,8 @@ local defaults = {
         acceptFrom = "known",     -- "known" (group, guild, friends) | "anyone" | "nobody"
         turnTimer = 60,           -- seconds per turn, 0 = no timer
         goldMode = false,         -- ledger-only gold tracking (Poker, Deathroll); OFF by default
+        bingoMaxRank = 1,         -- guild ranks 0..N may host Guild Bingo (0 = Guild Master)
+        announceBingo = false,    -- post Bingo winners in guild chat (host only)
         windowPos = nil,          -- remembered main window position
         debug = false,
     },

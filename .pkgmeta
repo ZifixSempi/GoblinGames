@@ -9,6 +9,7 @@
 #   GoblinGames_TicTacToe/
 #   GoblinGames_Connect6/
 #   GoblinGames_Deathroll/
+#   GoblinGames_Bingo/
 #
 # When you add a game module, add its folder here too.
 
@@ -19,6 +20,7 @@ move-folders:
   GoblinGames/GoblinGames_TicTacToe: GoblinGames_TicTacToe
   GoblinGames/GoblinGames_Connect6: GoblinGames_Connect6
   GoblinGames/GoblinGames_Deathroll: GoblinGames_Deathroll
+  GoblinGames/GoblinGames_Bingo: GoblinGames_Bingo
 
 # Libraries are committed under GoblinGames/Libs, so no externals are needed.
 

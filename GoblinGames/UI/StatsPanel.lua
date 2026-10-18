@@ -40,7 +40,7 @@ UI:RegisterPanel("stats", "Stats", function(container)
             row.right = UI.Text(row, "", { ink = true })
             row.right:SetPoint("RIGHT", -8, 0)
             row.button = UI.Button(row, "Paid", 64, 20, function(self)
-                if self.index then GG.Ledger:Settle(self.index) end
+                if self.onClick then self.onClick() end
             end, "wood")
             row.button:SetPoint("RIGHT", -4, 0)
             row.button.tooltip = "Mark this as settled once the gold has changed hands in a trade."
@@ -62,10 +62,12 @@ UI:RegisterPanel("stats", "Stats", function(container)
             row.left:SetText(item.left)
             row.right:SetText(item.right or "")
             row.line:SetShown(item.header == true)
-            row.button.index = item.ledgerIndex
-            row.button:SetShown(item.ledgerIndex ~= nil)
+            row.button.onClick = item.onClick
+            row.button:SetText(item.buttonText or "Paid")
+            row.button.tooltip = item.buttonTip
+            row.button:SetShown(item.onClick ~= nil)
             row.right:ClearAllPoints()
-            row.right:SetPoint("RIGHT", item.ledgerIndex and -74 or -8, 0)
+            row.right:SetPoint("RIGHT", item.onClick and -74 or -8, 0)
         end)
     list:SetPoint("TOPLEFT", 18, -66)
     list:SetPoint("BOTTOMRIGHT", -40, 18)
@@ -87,7 +89,30 @@ UI:RegisterPanel("stats", "Stats", function(container)
                 else
                     line = Util.ShortName(e.from) .. UI.InkGreen(" owes you " .. e.gold .. "g")
                 end
-                items[#items + 1] = { left = "     " .. line, right = UI.InkGrey(what), ledgerIndex = o.index }
+                local index = o.index
+                items[#items + 1] = { left = "     " .. line, right = UI.InkGrey(what),
+                    onClick = function() GG.Ledger:Settle(index) end, buttonText = "Paid",
+                    buttonTip = "Mark this as settled once the gold has changed hands in a trade." }
+            end
+        end
+
+        -- Guild Bingo winners whose prize hasn't been handed out (host's log).
+        local log = GG.db.global.bingoLog
+        local pending = {}
+        for i = #log, 1, -1 do
+            if not log[i].prizeGiven then pending[#pending + 1] = i end
+        end
+        if #pending > 0 then
+            items[#items + 1] = { header = true, left = "Bingo prizes to hand out", right = UI.InkGrey(#pending .. " waiting") }
+            for _, i in ipairs(pending) do
+                local e = log[i]
+                items[#items + 1] = {
+                    left = "     " .. Util.ShortName(e.winner) .. UI.InkGrey((" round %d, %s"):format(e.round, e.pattern)),
+                    right = UI.InkGrey(date("%b %d %H:%M", e.t)),
+                    onClick = function() e.prizeGiven = true; e.givenAt = time(); GG:Fire("BINGO_LOG_CHANGED") end,
+                    buttonText = "Given",
+                    buttonTip = "Mark the prize as handed out.",
+                }
             end
         end
 
@@ -123,5 +148,6 @@ UI:RegisterPanel("stats", "Stats", function(container)
 
     panel:SetScript("OnShow", Fill)
     GG.RegisterCallback(panel, "LEDGER_CHANGED", function() if panel:IsShown() then Fill() end end)
+    GG.RegisterCallback(panel, "BINGO_LOG_CHANGED", function() if panel:IsShown() then Fill() end end)
     return panel
 end)

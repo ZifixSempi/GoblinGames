@@ -364,6 +364,41 @@ def make_connect6():
     save_tga(rim, "StoneRim")
 
 
+def make_bingo():
+    """Guild Bingo: card cells and lottery balls.
+    BingoCell: a cream square with a rounded, inked border.
+    Ball: a glossy sphere drawn light (tinted by column colour in game).
+    BallFace: the white disc on the ball where the number goes (not tinted)."""
+    size = 64
+    cell = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(cell)
+    d.rounded_rectangle([2, 2, size - 3, size - 3], radius=10, fill=(250, 241, 214, 255), outline=(120, 82, 40, 255), width=3)
+    d.rounded_rectangle([6, 6, size - 7, size - 7], radius=8, outline=(255, 252, 240, 255), width=1)
+    save_tga(cell, "BingoCell")
+
+    ball = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    px = ball.load()
+    c, r = size / 2 - 0.5, size / 2 - 2
+    for y in range(size):
+        for x in range(size):
+            dx, dy = (x - c) / r, (y - c) / r
+            d2 = dx * dx + dy * dy
+            if d2 <= 1:
+                nz = math.sqrt(1 - d2)
+                light = max(0.0, (-dx * 0.4 - dy * 0.5 + nz * 0.75))
+                v = int(120 + 135 * min(1.0, light))
+                edge = 1 if d2 < 0.93 else max(0.0, (1 - d2) / 0.07)
+                px[x, y] = (v, v, v, int(255 * edge))
+    hl = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(hl).ellipse([14, 9, 30, 19], fill=(255, 255, 255, 190))
+    ball.alpha_composite(hl.filter(ImageFilter.GaussianBlur(2.5)))
+    save_tga(ball, "Ball")
+
+    face = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(face).ellipse([15, 15, size - 16, size - 16], fill=(255, 253, 245, 255), outline=(200, 195, 185, 255), width=2)
+    save_tga(face, "BallFace")
+
+
 if __name__ == "__main__":
     os.makedirs(MEDIA, exist_ok=True)
     make_logo()
@@ -378,4 +413,5 @@ if __name__ == "__main__":
     make_spark()
     make_slot()
     make_connect6()
+    make_bingo()
     print("Wrote textures to", MEDIA)

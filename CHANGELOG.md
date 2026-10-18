@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Milestone 4: Guild Bingo
+
+- New game: **Guild Bingo**, for officer-hosted prize nights.
+  - The officer presses "Announce to guild!" and every guild member with the addon gets a join popup. Latecomers can join mid-night and catch up on the numbers already called.
+  - The caller's desk has a pattern picker (any line, four corners, X, blackout), automatic calling (every 5, 8 or 12 seconds) or calling by hand, plus pause and announce-again buttons.
+  - Cards mark themselves with your faction's chips. The BINGO! button lights up when your card has the pattern, and the host's client checks your card against the numbers it actually called.
+  - Fair cards: every card is rebuilt from a shared seed, so no cards are sent and nobody can claim a card they don't have.
+  - A winner log (round, pattern, winner, time) sits on the Stats tab with a "Given" button for prizes. Winners can optionally be posted in guild chat.
+  - Practice: you and the Training Dummy each play a card against a robot caller.
+- Hosting is limited to the guild ranks chosen in Settings, and every client checks the host's rank against its own setting.
+- Core: open guild games (`open = true`), late joining (`lateJoin = true`), officer-only hosting (`officerHost = true`), modules can rename the quit button (`QuitLabel`), and the guild roster cache now tracks ranks.
+- Settings now have two columns: Everyday, plus Gold and Guild Bingo.
+
+
 ### Milestone 3: Deathroll and the dice helper
 
 - New game: **Deathroll** for 2-40 players. Roll from 1000 (or 100, 10,000, 100,000), and each roll goes up to the last result. Whoever rolls a 1 loses. A big ROLL button, a tumbling number, a skull and "DEATH!" when it's over, and a roll log.

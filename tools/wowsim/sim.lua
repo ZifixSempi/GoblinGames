@@ -339,8 +339,27 @@ local function BuildEnv(client)
     end
     env.UnitInRaid = function() return nil end
     env.IsInGuild = function() return client.guild ~= nil end
-    env.GetNumGuildMembers = function() return 0 end
-    env.GetGuildRosterInfo = function() return nil end
+    -- Guild roster: every simulated client in the same guild, with a rank
+    -- index (0 = Guild Master). Ranks come from NewClient's opts.rank.
+    local function GuildMates()
+        local list = {}
+        for _, c in ipairs(Sim.clients) do
+            if client.guild and c.guild == client.guild then list[#list + 1] = c end
+        end
+        return list
+    end
+    env.GetNumGuildMembers = function() return #GuildMates() end
+    env.GetGuildRosterInfo = function(i)
+        local c = GuildMates()[i]
+        if c then return c.name .. "-" .. REALM, "Rank" .. c.rank, c.rank end
+    end
+    env.GetGuildInfo = function(unit)
+        if client.guild then return client.guild, "Rank" .. client.rank, client.rank end
+    end
+    env.GuildControlGetRankName = function(i) return "Rank" .. (i - 1) end
+    env.C_GuildInfo = { GuildRoster = function()
+        AddTimer(client, 0.05, function() Sim.FireEvent(client, "GUILD_ROSTER_UPDATE") end, false)
+    end }
     env.C_FriendList = { GetFriendInfo = function() return nil end }
 
     -- Addon messages.
@@ -445,6 +464,7 @@ end
 function Sim.NewClient(opts)
     local client = {
         name = opts.name, faction = opts.faction or "Horde", group = opts.group, guild = opts.guild,
+        rank = opts.rank or 3,
         online = true, frames = {}, units = {}, chat = {}, chatSent = {}, sounds = {}, errors = {},
         registeredPrefixes = {}, loaded = {}, addonFiles = {}, sent = 0,
     }

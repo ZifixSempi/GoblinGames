@@ -175,7 +175,9 @@ function UI:RefreshGamePanel()
     end
 
     quitButton:SetShown(not ended)
-    quitButton:SetText(s.isLocal and "Quit" or "Forfeit")
+    -- Modules can rename it (Guild Bingo: "End night" for the host, "Leave" for players).
+    local quitText = s.def and s.def.QuitLabel and GG:CallModule(s.def, "QuitLabel", s)
+    quitButton:SetText(quitText or (s.isLocal and "Quit" or "Forfeit"))
     rematchButton:SetShown(ended and s:IsHost())
     backButton:SetShown(ended)
     Say(s)

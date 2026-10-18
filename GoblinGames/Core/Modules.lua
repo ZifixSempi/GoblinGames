@@ -17,6 +17,8 @@
 local _, GG = ...
 
 -- practice = true shows a "Practice" button (the module defines BotAction).
+-- open = true: announced to the whole guild instead of invite-only.
+-- officerHost = true: only the guild ranks chosen in Settings may host it.
 GG.CATALOG = {
     { id = "tictactoe",   addon = "GoblinGames_TicTacToe",   name = "Tic-Tac-Toe",   min = 2, max = 2, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Note_02",       desc = "Three in a row, with faction crests." },
@@ -24,7 +26,8 @@ GG.CATALOG = {
       icon = "Interface\\Icons\\INV_Misc_Coin_04",  desc = "Drop checkers into the rack. Six in a row wins!" },
     { id = "deathroll",   addon = "GoblinGames_Deathroll",   name = "Deathroll",     min = 2, max = 40, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Bone_HumanSkull_01", desc = "/roll down from 1000. Whoever rolls 1 loses." },
-    { id = "bingo",       addon = "GoblinGames_Bingo",       name = "Guild Bingo",   min = 1, max = 1000,
+    { id = "bingo",       addon = "GoblinGames_Bingo",       name = "Guild Bingo",   min = 2, max = 1000, practice = true,
+      open = true, officerHost = true,
       icon = "Interface\\Icons\\INV_Misc_Ticket_Darkmoon_01", desc = "Officer-hosted prize nights." },
     { id = "gofish",      addon = "GoblinGames_GoFish",      name = "Go Fish",       min = 2, max = 6,
       icon = "Interface\\Icons\\INV_Misc_Fish_02",       desc = "Collect sets of four." },

@@ -118,21 +118,47 @@ end
 -- Checking guild membership by scanning the roster every time would be slow,
 -- so we rebuild a lookup table whenever the roster changes.
 -------------------------------------------------------------------------------
-local guildMembers = {}
+local guildMembers = {}   -- full name -> rank index (0 = Guild Master)
 
 local function RebuildGuild()
     wipe(guildMembers)
     if not IsInGuild() then return end
     for i = 1, GetNumGuildMembers() do
-        local name = GetGuildRosterInfo(i)
-        if name then guildMembers[Util.FullName(name)] = true end
+        -- GetGuildRosterInfo returns name, rankName, rankIndex, ...
+        local name, _, rankIndex = GetGuildRosterInfo(i)
+        if name then guildMembers[Util.FullName(name)] = rankIndex or 99 end
     end
 end
 GG:RegisterEvent("GUILD_ROSTER_UPDATE", RebuildGuild)
 GG:RegisterEvent("PLAYER_GUILD_UPDATE", RebuildGuild)
 
+--- Ask the server for a fresh guild roster (it answers with GUILD_ROSTER_UPDATE).
+function Util.RequestGuildRoster()
+    local request = (C_GuildInfo and C_GuildInfo.GuildRoster) or _G.GuildRoster
+    if request and IsInGuild() then request() end
+end
+table.insert(GG.onLogin, function() Util.RequestGuildRoster() end)
+
 function Util.IsGuildMember(fullName)
-    return guildMembers[fullName] == true
+    return guildMembers[fullName] ~= nil
+end
+
+--- Guild rank index of a guild member (0 = Guild Master), or nil.
+function Util.GuildRankIndex(fullName)
+    if Util.IsMe(fullName) then
+        local _, _, rankIndex = GetGuildInfo("player")
+        return rankIndex
+    end
+    return guildMembers[fullName]
+end
+
+--- Name of a guild rank by index (0 = Guild Master), if the client can tell us.
+function Util.GuildRankName(index)
+    if GuildControlGetRankName then
+        local ok, name = pcall(GuildControlGetRankName, index + 1)
+        if ok and name and name ~= "" then return name end
+    end
+    return nil
 end
 
 --- Is this name on our (character) friends list?

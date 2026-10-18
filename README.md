@@ -5,14 +5,14 @@ guild while you wait for queues, a raid to form, or guild night to start.
 Frames are themed Horde or Alliance, and every piece shows its owner's faction
 crest.
 
-**Status:** Milestone 3 (core, Tic-Tac-Toe, Connect 6, Deathroll). Other games show as "Coming soon".
+**Status:** Milestone 4 (core, Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo). Other games show as "Coming soon".
 
 | Game | Players | Status |
 |---|---|---|
 | Tic-Tac-Toe | 2 | ✅ |
 | Connect 6 | 2 | ✅ |
 | Deathroll | 2+ | ✅ |
-| Guild Bingo | any | planned |
+| Guild Bingo | any | ✅ |
 | Go Fish | 2–6 | planned |
 | Crazy Eights | 2–6 | planned |
 | Blackjack | 2–8 | planned |
@@ -32,6 +32,14 @@ Titan Reforged, Burning Crusade Anniversary and Classic Era.
 - **Host** opens a lobby. Invite group members, your target, or anyone by name.
   Players without the addon are flagged as "No addon / offline".
 - `/gg help` lists every command.
+
+**Guild Bingo nights:** an officer opens Guild Bingo and presses *Announce to
+guild!*, and everyone with the addon gets a popup to join (latecomers too). The
+caller picks a pattern (any line, four corners, X, blackout) and numbers are
+called automatically. Cards mark themselves; press BINGO! when yours lights
+up. Wins are logged for prizes (Stats tab) and can be posted in guild chat.
+Who may host is set in Settings (default: Guild Master and the first officer
+rank), and every player's client checks the host's rank too.
 
 Invites are only accepted from your group, guild and friends by default
 (change it in Settings). Everything runs on invisible addon messages; GoblinGames
@@ -61,6 +69,7 @@ GoblinGames/             core addon (lobby, comms, turns, UI, theming, stats)
 GoblinGames_TicTacToe/   game modules (Load-On-Demand)
 GoblinGames_Connect6/
 GoblinGames_Deathroll/
+GoblinGames_Bingo/
 tools/art/               art generator, logo SVG, CurseForge logo
 tools/wowsim/            headless WoW simulator + tests
 docs/MODULE_API.md       how to write a game module
@@ -75,7 +84,7 @@ Copy (or symlink) `GoblinGames` and the `GoblinGames_*` game folders into
 then `/reload` after each change. Turn on `/gg debug` to see every message.
 
 Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua`,
-`test_connect6.lua` and `test_deathroll.lua` in the same folder.
+`test_connect6.lua`, `test_deathroll.lua` and `test_bingo.lua` in the same folder.
 
 To add a game, read [docs/MODULE_API.md](docs/MODULE_API.md).
 

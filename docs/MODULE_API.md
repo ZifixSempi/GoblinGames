@@ -35,6 +35,9 @@ Then:
 
 1. Add an entry for the game to `GG.CATALOG` in `GoblinGames/Core/Modules.lua`
    (id, addon folder name, display name, min/max players, icon, description).
+   Optional flags: `practice = true` (has a bot), `open = true` (announced to
+   the whole guild instead of invite-only), `officerHost = true` (only the
+   guild ranks chosen in Settings may host).
    The game picker reads the catalog, so the game shows up without its module
    being loaded.
 2. Add the folder to `.pkgmeta` under `move-folders`.
@@ -67,6 +70,8 @@ GG:RegisterGame(Game)            -- last line of the file
 | `turnTimer` (field, not a function) | | Override the turn length in seconds (`0` = no timer). If unset, the host's setting is used. |
 | `compactHeader` (field) | | `true` for big boards: hides the name plates and puts the status line and timer in one thin row (Connect 6 uses it). |
 | `options` (field) | | Lobby options the host picks before inviting: `{ { key, label, default, values = { {value, text}, ... }, gold = true? } }`. Read them in game as `session.options[key]`. `gold = true` options only appear with gold mode on. A `stake` option is understood by the core (invite popup, consent, `GG.Lobby.Stake(session)`). |
+| `lateJoin` (field) | | `true` lets players join an open game that's already running. The core sends them START and calls `OnSyncRequest` for them. |
+| `QuitLabel(session)` | everyone | Optional. Returns the text for the quit button (Bingo: "End night" / "Leave"). |
 | `hint` (field) | | What the goblin says when it's your turn, e.g. `"Click an empty slot. Three in a row wins!"` |
 
 **Every value in `args` is a string.** Convert with `tonumber()`. Booleans

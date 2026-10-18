@@ -250,6 +250,57 @@ end
 --- Can the host still change options? (Only before inviting anyone.)
 function Lobby:CanEditOptions(session)
     return session:IsHost() and session.status == "lobby" and #session.inviteOrder == 0
+        and not session.announced
+end
+
+-------------------------------------------------------------------------------
+-- Open guild games (Guild Bingo, later Trivia)
+--
+-- Instead of inviting people one by one, the host ANNOUNCES the game to the
+-- whole guild (an "OPEN" addon message on the GUILD channel). Everyone with
+-- the addon gets a "join?" popup. Games with `lateJoin = true` in their module
+-- definition also take new players after they've started.
+--
+-- Catalog entries with officerHost = true can only be hosted by the guild
+-- ranks chosen in Settings, and every receiving client checks the host's rank
+-- against ITS OWN setting too, so changing your own setting doesn't let you
+-- host for everyone else.
+-------------------------------------------------------------------------------
+local ANNOUNCE_COOLDOWN = 20
+
+--- Is this guild rank index allowed to host officer games, by our settings?
+function Lobby.RankMayHost(rankIndex)
+    local maxRank = GG.db.profile.bingoMaxRank or 1
+    return rankIndex ~= nil and rankIndex <= maxRank
+end
+
+--- Can the local player host this catalog entry? Returns ok, reason.
+function Lobby:MayHost(entry)
+    if not entry.officerHost then return true end
+    if not IsInGuild() then return false, entry.name .. " is for guilds. Join a guild first!" end
+    local _, _, rankIndex = GetGuildInfo("player")
+    if not Lobby.RankMayHost(rankIndex) then
+        return false, "Only officers can host " .. entry.name .. ". (Settings: who can host Guild Bingo.)"
+    end
+    return true
+end
+
+--- Announce an open game to the guild. Returns ok, reason.
+function Lobby:Announce(session)
+    if not session:IsHost() or not session.catalog.open then return false end
+    if session.status == "ended" then return false end
+    if session.status == "playing" and not (session.def and session.def.lateJoin) then return false end
+    local now = GetTime()
+    if session.lastAnnounce and now - session.lastAnnounce < ANNOUNCE_COOLDOWN then
+        return false, ("You can announce again in %d seconds."):format(ANNOUNCE_COOLDOWN - (now - session.lastAnnounce))
+    end
+    if not IsInGuild() then return false, "You're not in a guild." end
+    session.lastAnnounce = now
+    session.announced = true
+    Comm:Send("GUILD", nil, "NORMAL", "OPEN", session.id, session.gameId,
+        GG.Theme:GetPlayerFaction(), EncodeOptions(session.options))
+    Fire("SESSION_UPDATED", session)
+    return true
 end
 
 function Lobby:SetOption(session, key, value)
@@ -266,6 +317,8 @@ end
 --- Create a new game lobby that we host. Returns session or nil, error.
 function Lobby:CreateHosted(gameId)
     if self:IsBusy() then return nil, "Finish or leave your current game first." end
+    local mayHost, why = self:MayHost(GG:GetCatalogEntry(gameId) or {})
+    if not mayHost then return nil, why end
     local def, err = GG:LoadGame(gameId)
     if not def then return nil, err end
     if self.active then self:Close(self.active) end
@@ -274,6 +327,7 @@ function Lobby:CreateHosted(gameId)
     local s = NewSession(Util.RandomId(), gameId, me)
     s.factions[me] = GG.Theme:GetPlayerFaction()
     s.options = DefaultOptions(def, GG:GoldModeOn())
+    s.open = s.catalog.open
     self.sessions[s.id] = s
     self.active = s
     Fire("SESSION_CREATED", s)
@@ -338,6 +392,7 @@ function Lobby:Start(session)
         end
     end
     session.channel = channel or "WHISPER"
+    if session.open then session.channel = "GUILD" end -- everyone hears the caller
 
     local roster = {}
     for i, p in ipairs(players) do roster[i] = p .. ":" .. session:GetFaction(p) end
@@ -417,14 +472,15 @@ function Lobby:Leave(session)
         self:Close(session)
 
     elseif session.status == "playing" then
+        local reason = session.open and "left" or "forfeit"
         if session:IsHost() then
-            self:HandlePlayerLeft(session, session:Me(), "forfeit")
+            self:HandlePlayerLeft(session, session:Me(), reason)
         else
-            Comm:SendToPlayer(session.host, "ALERT", "LEAVE", session.id, "forfeit")
-            if not session.isLocal then
+            Comm:SendToPlayer(session.host, "ALERT", "LEAVE", session.id, reason)
+            if not session.isLocal and not session.open then
                 GG.Stats:Record(session.gameId, "loss", session:Others())
             end
-            GG:Print("You forfeited " .. session.catalog.name .. ".")
+            GG:Print((session.open and "You left " or "You forfeited ") .. session.catalog.name .. ".")
             self:Close(session)
         end
 
@@ -511,6 +567,7 @@ function Lobby:DeclineInvite(sessionId, reason)
     local invite = self.invites[sessionId]
     if not invite then return end
     ClearInvite(sessionId)
+    if invite.open then return end -- nobody is waiting on an answer to an announcement
     Comm:SendToPlayer(invite.host, "NORMAL", "DEC", sessionId, reason or "declined")
 end
 
@@ -549,6 +606,37 @@ Comm:RegisterOp("INV", function(sender, sid, args, _, protocol)
     end)
 end)
 
+-- An officer announced an open game to the guild.
+Comm:RegisterOp("OPEN", function(sender, sid, args, channel, protocol)
+    if protocol ~= GG.PROTOCOL or channel ~= "GUILD" then return end
+    if Lobby.invites[sid] or Lobby.sessions[sid] then return end
+    local gameId, hostFaction, options = args[1], args[2], DecodeOptions(args[3])
+    local entry = GG:GetCatalogEntry(gameId)
+    if not entry or not entry.open then return end
+    if GG.db.profile.acceptFrom == "nobody" or Lobby:IsBusy() then return end
+    -- Officer games: check the host's rank against OUR setting.
+    if entry.officerHost and not Lobby.RankMayHost(Util.GuildRankIndex(sender)) then
+        GG:Debug("ignored", gameId, "from", sender, "rank", tostring(Util.GuildRankIndex(sender)))
+        return
+    end
+    if not GG:IsGameInstalled(gameId) then
+        GG:Print(Util.ShortName(sender) .. " is hosting " .. entry.name .. ", but you don't have that game installed.")
+        return
+    end
+    local invite = {
+        id = sid, gameId = gameId, host = sender, open = true,
+        hostFaction = GG.Theme:Sanitize(hostFaction), options = options,
+        expires = GetTime() + 120,
+    }
+    Lobby.invites[sid] = invite
+    GG.Theme:PlaySound("invite")
+    GG:Print(Util.ShortName(sender) .. " opened " .. entry.name .. "! Type /gg accept or use the popup to join.")
+    GG:Fire("INVITE_RECEIVED", invite)
+    C_Timer.After(120, function()
+        if Lobby.invites[sid] == invite then ClearInvite(sid) end
+    end)
+end)
+
 local function HostedSession(sid)
     local s = Lobby.sessions[sid]
     if s and s:IsHost() then return s end
@@ -566,6 +654,16 @@ end)
 Comm:RegisterOp("ACC", function(sender, sid, args)
     local s = HostedSession(sid)
     local info = s and s.invites[sender]
+    -- Open games: anyone who saw the announcement may join.
+    if s and not info and s.open then
+        info = { status = "sent" }
+        s.invites[sender] = info
+        table.insert(s.inviteOrder, sender)
+    end
+    if s and info and s.status == "playing" and s.open and s.def.lateJoin then
+        Lobby:AddLateJoiner(s, sender, args[1])
+        return
+    end
     if not info or s.status ~= "lobby" then
         -- Too late (game started or lobby gone): let them know.
         Comm:SendToPlayer(sender, "NORMAL", "CANCEL", sid, "closed")
@@ -690,10 +788,38 @@ Comm:RegisterOp("SYNC", function(sender, sid)
     s:SendTo(sender, "_SEQ", s.seq)
 end)
 
+-- Someone joins an open game that's already running.
+function Lobby:AddLateJoiner(s, name, faction)
+    if Util.IndexOf(s.players, name) then return end
+    if #s.players >= s.catalog.max then
+        Comm:Whisper(name, "NORMAL", "CANCEL", s.id, "full")
+        return
+    end
+    s.invites[name].status = "accepted"
+    -- Everyone already playing learns about the newcomer...
+    s:Broadcast("_JOIN", name, GG.Theme:Sanitize(faction))
+    -- ...and the newcomer gets the roster privately, then the current state.
+    local roster = {}
+    for i, p in ipairs(s.players) do roster[i] = p .. ":" .. s:GetFaction(p) end
+    Comm:Whisper(name, "ALERT", "START", s.id, Comm.EncodeList(roster), s.channel, EncodeOptions(s.options))
+    GG:CallModule(s.def, "OnSyncRequest", s, name)
+    GG.Turns:SendTo(s, name)
+    s:SendTo(name, "_SEQ", s.seq)
+end
+
 -------------------------------------------------------------------------------
 -- Core state ops (host -> everyone, delivered in order with module ops)
 -------------------------------------------------------------------------------
 Lobby.coreStateOps = {}
+
+Lobby.coreStateOps["_JOIN"] = function(s, args)
+    local name, faction = args[1], args[2]
+    if not name or Util.IndexOf(s.players, name) then return end
+    table.insert(s.players, name)
+    s.factions[name] = GG.Theme:Sanitize(faction)
+    if not Util.IsMe(name) then GG:Print(Util.ShortName(name) .. " joined " .. s.catalog.name .. ".") end
+    Fire("SESSION_UPDATED", s)
+end
 
 Lobby.coreStateOps["_SEQ"] = function(s, args)
     s.seq = tonumber(args[1]) or s.seq
