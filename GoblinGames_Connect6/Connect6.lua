@@ -1,66 +1,80 @@
 --[[----------------------------------------------------------------------------
   GoblinGames_Connect6/Connect6.lua
 
-  Connect 6 (Connect6 / "Liuziqi"), played on the lines of a 19x19 board.
+  Connect 6, the "vertical checkers game": drop checkers into a standing rack
+  (like the classic Connect Six box game, and Connect Four's big brother).
 
   RULES
-    - The first player places ONE stone. After that, every turn is TWO stones.
-    - Six or more of your stones in a row (across, down or diagonal) wins.
-    - A full board with no winner is a draw.
-  The one-then-two opening keeps it fair: each player is always one stone
-  ahead of or level with the other after their turn.
+    - Players take turns dropping ONE checker into a column. It falls to the
+      lowest empty hole.
+    - Six or more of your checkers in a row (across, up-down or diagonal) wins.
+    - A full rack with no winner is a draw.
+  The rack is COLS x ROWS (9 x 8): wide enough for six in every direction.
 
   HOW IT FOLLOWS THE MODULE PATTERN (see docs/MODULE_API.md)
-    - Each stone is one action: session:SendAction("PLACE", x, y).
-    - The host checks it, then Broadcasts "SET" (the stone) and, when the
-      player has used up their stones, "NEXT" + GG.Turns:Advance().
-    - Every client applies SET / NEXT in OnState, so all boards stay identical.
-    - "SNAP" is the whole game (sent when a player missed messages).
+    - A move is one action: session:SendAction("DROP", column).
+    - The host checks it, works out where the checker lands, and Broadcasts
+      "SET" (hole index + seat). Every client applies it in OnState.
+    - "SNAP" is the whole rack (sent when a player missed messages).
 
-  PIECES: stones take the colour of their owner's faction (Horde red,
-  Alliance blue, goblin green for neutral), with a gold rim for the first seat
-  and silver for the second, so two players of the same faction still differ.
+  PIECES: poker chips. Horde chips are red with the Horde crest, Alliance
+  chips blue with the Alliance crest (neutral: goblin green). A gold rim marks
+  the first seat and silver the second; same-faction opponents get a darker
+  shade, so the two players can always be told apart.
+
+  ART: the rack is one small tile (a square of golden panel with a round hole)
+  repeated across the board. The checkers are drawn BEHIND the panel, so they
+  show through the holes, and they "fall" into place with a Translation
+  animation.
 ------------------------------------------------------------------------------]]
 
 local GG = GoblinGames
 local Util = GG.Util
 local UI = GG.UI
 
-local N = 19            -- board size (lines)
-local NEED = 6          -- stones in a row to win
+local COLS, ROWS = 9, 8
+local NEED = 6
 
 local Game = {
     id = "connect6",
-    hint = "Click where the lines cross. Six in a row wins!",
+    hint = "Click a column to drop a chip. Six in a row wins!",
     compactHeader = true,   -- ask the core for the big-board layout
 }
 
 local DIRS = { { 1, 0 }, { 0, 1 }, { 1, 1 }, { 1, -1 } }
 
 -------------------------------------------------------------------------------
--- Rules (pure functions)
+-- Rules (pure functions). Row 1 is the TOP of the rack, ROWS is the bottom.
 -------------------------------------------------------------------------------
-local function Idx(x, y) return (y - 1) * N + x end
-local function XY(i) return (i - 1) % N + 1, math.floor((i - 1) / N) + 1 end
-local function OnBoard(x, y) return x >= 1 and x <= N and y >= 1 and y <= N end
+local function Idx(col, row) return (row - 1) * COLS + col end
+local function ColRow(i) return (i - 1) % COLS + 1, math.floor((i - 1) / COLS) + 1 end
+local function OnBoard(col, row) return col >= 1 and col <= COLS and row >= 1 and row <= ROWS end
 
 local function EmptyBoard()
     local b = {}
-    for i = 1, N * N do b[i] = 0 end
+    for i = 1, COLS * ROWS do b[i] = 0 end
     return b
 end
 
---- The winning line through (x, y) if that stone completes six or more, else nil.
-local function WinningLine(board, x, y)
-    local seat = board[Idx(x, y)]
+--- The row a checker dropped in `col` lands in, or nil if the column is full.
+local function LandingRow(board, col)
+    for row = ROWS, 1, -1 do
+        if board[Idx(col, row)] == 0 then return row end
+    end
+    return nil
+end
+
+--- The winning line through (col, row) if that checker makes six or more, else nil.
+local function WinningLine(board, col, row)
+    local seat = board[Idx(col, row)]
     if seat == 0 then return nil end
     for _, d in ipairs(DIRS) do
-        local line = { Idx(x, y) }
+        local line = { Idx(col, row) }
         for sign = -1, 1, 2 do
-            local cx, cy = x + d[1] * sign, y + d[2] * sign
-            while OnBoard(cx, cy) and board[Idx(cx, cy)] == seat do
-                line[#line + 1] = Idx(cx, cy)
-                cx, cy = cx + d[1] * sign, cy + d[2] * sign
+            local c, r = col + d[1] * sign, row + d[2] * sign
+            while OnBoard(c, r) and board[Idx(c, r)] == seat do
+                line[#line + 1] = Idx(c, r)
+                c, r = c + d[1] * sign, r + d[2] * sign
             end
         end
         if #line >= NEED then return line end
@@ -68,289 +82,299 @@ local function WinningLine(board, x, y)
     return nil
 end
 
+local function IsFull(board)
+    for col = 1, COLS do
+        if board[Idx(col, 1)] == 0 then return false end
+    end
+    return true
+end
+
 local function BoardToString(board) return table.concat(board) end
 local function BoardFromString(text)
     local b = EmptyBoard()
-    for i = 1, N * N do b[i] = tonumber(text:sub(i, i)) or 0 end
+    for i = 1, COLS * ROWS do b[i] = tonumber(text:sub(i, i)) or 0 end
     return b
 end
 
-local function ListToString(list) return table.concat(list, ",") end
-local function ListFromString(text)
-    local list = {}
-    for v in (text or ""):gmatch("%d+") do list[#list + 1] = tonumber(v) end
-    return list
-end
-
 -------------------------------------------------------------------------------
--- Board UI
+-- Rack UI
 -------------------------------------------------------------------------------
-local SPACING = 18                     -- pixels between lines
-local MARGIN = 16                      -- wood border around the grid
-local BOARD_PX = (N - 1) * SPACING + 2 * MARGIN
+local CELL = 38             -- size of one hole tile
+local PAD = 8               -- frame around the holes
+local RACK_W = COLS * CELL + 2 * PAD
+local RACK_H = ROWS * CELL + 2 * PAD
 
-local FACTION_STONE = {
-    Horde    = { 0.85, 0.22, 0.16 },
-    Alliance = { 0.28, 0.50, 1.00 },
-    Neutral  = { 0.40, 0.78, 0.28 },
+local FACTION_COLOR = {
+    Horde    = { 0.86, 0.20, 0.14 },
+    Alliance = { 0.24, 0.46, 1.00 },
+    Neutral  = { 0.38, 0.76, 0.26 },
 }
 local RIM = { { 1.00, 0.80, 0.25 }, { 0.80, 0.84, 0.92 } }
 
-local boardFrame, cells, side
+local rack, holes, columns, side
 local current
+local hoverCol
 
-local function StoneColor(session, seat)
+local function CheckerColor(session, seat)
     local faction = session:GetFaction(session.players[seat])
-    local c = FACTION_STONE[faction] or FACTION_STONE.Neutral
-    -- Same faction on both sides: darken the second player's stones.
+    local c = FACTION_COLOR[faction] or FACTION_COLOR.Neutral
     local other = session:GetFaction(session.players[seat == 1 and 2 or 1])
     if seat == 2 and other == faction then
-        return { c[1] * 0.55, c[2] * 0.55, c[3] * 0.55 }
+        return { c[1] * 0.5, c[2] * 0.5, c[3] * 0.5 }
     end
     return c
 end
 
-local function OnCellClick(cell)
-    local s = current
-    if not s or s.status ~= "playing" then return end
-    if not GG.Turns:IsMyTurn(s) or s.data.board[cell.index] ~= 0 or s.data.stonesLeft <= 0 then
-        cell.shake:Play()
-        return
-    end
-    local x, y = XY(cell.index)
-    s:SendAction("PLACE", x, y)
+local Refresh -- defined below
+
+--- A chip: tinted base + white edge notches + faction crest + seat rim.
+--- Built as a little frame so one animation moves all its layers together.
+local function MakeChip(parent, size)
+    local chip = CreateFrame("Frame", nil, parent)
+    chip:SetSize(size, size)
+    chip.base = chip:CreateTexture(nil, "ARTWORK", nil, 0)
+    chip.base:SetTexture(UI.MEDIA .. "Chip")
+    chip.base:SetAllPoints()
+    chip.notches = chip:CreateTexture(nil, "ARTWORK", nil, 1)
+    chip.notches:SetTexture(UI.MEDIA .. "ChipNotches")
+    chip.notches:SetAllPoints()
+    chip.crest = chip:CreateTexture(nil, "ARTWORK", nil, 2)
+    chip.crest:SetSize(size * 0.52, size * 0.52)
+    chip.crest:SetPoint("CENTER")
+    chip.rim = chip:CreateTexture(nil, "ARTWORK", nil, 3)
+    chip.rim:SetTexture(UI.MEDIA .. "StoneRim")
+    chip.rim:SetAllPoints()
+    return chip
 end
 
-local function BuildBoard()
+local function PaintChip(chip, session, seat)
+    local c = CheckerColor(session, seat)
+    chip.base:SetVertexColor(c[1], c[2], c[3])
+    GG.Theme:SetCrest(chip.crest, session:GetFaction(session.players[seat]))
+    local r = RIM[seat]
+    chip.rim:SetVertexColor(r[1], r[2], r[3])
+end
+
+local function OnColumnClick(colButton)
+    local s = current
+    if not s or s.status ~= "playing" then return end
+    if not GG.Turns:IsMyTurn(s) or not LandingRow(s.data.board, colButton.col) then
+        colButton.shake:Play()
+        return
+    end
+    s:SendAction("DROP", colButton.col)
+end
+
+local function BuildRack()
     local area = UI:GetGameArea()
-    boardFrame = CreateFrame("Frame", nil, area)
-    boardFrame:SetSize(BOARD_PX, BOARD_PX)
-    boardFrame:SetPoint("TOPLEFT", 4, -2)
 
-    -- Wood, tiled, with a dark edge.
-    local wood = boardFrame:CreateTexture(nil, "BACKGROUND")
-    wood:SetTexture(UI.MEDIA .. "BoardWood", "REPEAT", "REPEAT")
-    wood:SetHorizTile(true)
-    wood:SetVertTile(true)
-    wood:SetAllPoints()
-    for _, edge in ipairs({ { "TOPLEFT", "TOPRIGHT", true }, { "BOTTOMLEFT", "BOTTOMRIGHT", true },
-                            { "TOPLEFT", "BOTTOMLEFT", false }, { "TOPRIGHT", "BOTTOMRIGHT", false } }) do
-        local t = boardFrame:CreateTexture(nil, "BORDER")
-        t:SetColorTexture(0.18, 0.10, 0.04, 1)
-        t:SetPoint(edge[1]); t:SetPoint(edge[2])
-        if edge[3] then t:SetHeight(3) else t:SetWidth(3) end
+    rack = CreateFrame("Frame", nil, area)
+    rack:SetSize(RACK_W, RACK_H)
+    rack:SetPoint("TOPLEFT", 14, -2)
+
+    -- Dark inside of the rack: what you see through an empty hole.
+    local back = rack:CreateTexture(nil, "BACKGROUND")
+    back:SetColorTexture(0.06, 0.05, 0.08, 1)
+    back:SetPoint("TOPLEFT", PAD, -PAD)
+    back:SetPoint("BOTTOMRIGHT", -PAD, PAD)
+
+    -- Checkers live on their own frame BEHIND the panel frame.
+    local checkerLayer = CreateFrame("Frame", nil, rack)
+    checkerLayer:SetAllPoints()
+    local panel = CreateFrame("Frame", nil, rack)
+    panel:SetAllPoints()
+    panel:SetFrameLevel(checkerLayer:GetFrameLevel() + 2)
+
+    -- The golden panel: one hole tile per cell, plus a solid rim around it.
+    holes = {}
+    for i = 1, COLS * ROWS do
+        local col, row = ColRow(i)
+        local x, y = PAD + (col - 1) * CELL, -(PAD + (row - 1) * CELL)
+
+        local tile = panel:CreateTexture(nil, "ARTWORK")
+        tile:SetTexture(UI.MEDIA .. "RackHole")
+        tile:SetSize(CELL, CELL)
+        tile:SetPoint("TOPLEFT", x, y)
+
+        local h = {}
+        h.chip = MakeChip(checkerLayer, CELL - 6)
+        h.chip:SetPoint("CENTER", rack, "TOPLEFT", x + CELL / 2, y - CELL / 2)
+        h.chip:Hide()
+
+        -- Falling animation: jump up to the top row instantly, then drop.
+        local g = h.chip:CreateAnimationGroup()
+        h.up = g:CreateAnimation("Translation")
+        h.up:SetDuration(0)
+        h.up:SetOrder(1)
+        h.down = g:CreateAnimation("Translation")
+        h.down:SetSmoothing("IN")
+        h.down:SetOrder(2)
+        h.fall = g
+
+        -- Glow for the last move and the winning line (on top of the panel).
+        h.mark = panel:CreateTexture(nil, "OVERLAY")
+        h.mark:SetTexture(UI.MEDIA .. "ButtonGlow")
+        h.mark:SetSize(CELL + 8, CELL + 8)
+        h.mark:SetPoint("CENTER", rack, "TOPLEFT", x + CELL / 2, y - CELL / 2)
+        h.mark:SetBlendMode("ADD")
+        h.mark:Hide()
+        UI.AddPulse(h.mark, 0.25, 0.5)
+
+        holes[i] = h
+    end
+    -- Solid golden frame around the holes.
+    for _, e in ipairs({ { "TOPLEFT", "TOPRIGHT", PAD, true }, { "BOTTOMLEFT", "BOTTOMRIGHT", PAD, true },
+                         { "TOPLEFT", "BOTTOMLEFT", PAD, false }, { "TOPRIGHT", "BOTTOMRIGHT", PAD, false } }) do
+        local t = panel:CreateTexture(nil, "ARTWORK", nil, -1)
+        t:SetColorTexture(0.93, 0.74, 0.20, 1)
+        t:SetPoint(e[1]); t:SetPoint(e[2])
+        if e[4] then t:SetHeight(e[3]) else t:SetWidth(e[3]) end
+    end
+    local outline = panel:CreateTexture(nil, "BACKGROUND")
+    outline:SetColorTexture(0.35, 0.22, 0.04, 1)
+    outline:SetPoint("TOPLEFT", -2, 2)
+    outline:SetPoint("BOTTOMRIGHT", 2, -2)
+
+    -- The stand's two feet, in the theme's accent colour.
+    for _, side in ipairs({ "LEFT", "RIGHT" }) do
+        local foot = rack:CreateTexture(nil, "BACKGROUND", nil, -1)
+        foot:SetTexture(UI.MEDIA .. "Button")
+        foot:SetSize(70, 18)
+        foot:SetPoint("TOP", rack, "BOTTOM" .. side, side == "LEFT" and 18 or -18, 4)
+        GG.Theme:Paint(foot, "accent")
     end
 
-    -- Grid lines.
-    local span = (N - 1) * SPACING
-    for i = 0, N - 1 do
-        local h = boardFrame:CreateTexture(nil, "BORDER", nil, 1)
-        h:SetColorTexture(0.22, 0.13, 0.05, 0.85)
-        h:SetSize(span + 1, 1)
-        h:SetPoint("TOPLEFT", MARGIN, -(MARGIN + i * SPACING))
-        local v = boardFrame:CreateTexture(nil, "BORDER", nil, 1)
-        v:SetColorTexture(0.22, 0.13, 0.05, 0.85)
-        v:SetSize(1, span + 1)
-        v:SetPoint("TOPLEFT", MARGIN + i * SPACING, -MARGIN)
-    end
-    -- Star points, like a Go board, to help count.
-    for _, sx in ipairs({ 4, 10, 16 }) do
-        for _, sy in ipairs({ 4, 10, 16 }) do
-            local dot = boardFrame:CreateTexture(nil, "BORDER", nil, 2)
-            dot:SetTexture(UI.MEDIA .. "Stone")
-            dot:SetVertexColor(0.2, 0.12, 0.05)
-            dot:SetSize(6, 6)
-            dot:SetPoint("CENTER", boardFrame, "TOPLEFT", MARGIN + (sx - 1) * SPACING, -(MARGIN + (sy - 1) * SPACING))
-        end
-    end
-
-    -- One button per intersection.
-    cells = {}
-    for i = 1, N * N do
-        local x, y = XY(i)
-        local cell = CreateFrame("Button", nil, boardFrame)
-        cell:SetSize(SPACING, SPACING)
-        cell:SetPoint("CENTER", boardFrame, "TOPLEFT", MARGIN + (x - 1) * SPACING, -(MARGIN + (y - 1) * SPACING))
-        cell.index = i
-
-        cell.stone = cell:CreateTexture(nil, "ARTWORK")
-        cell.stone:SetTexture(UI.MEDIA .. "Stone")
-        cell.stone:SetSize(SPACING - 1, SPACING - 1)
-        cell.stone:SetPoint("CENTER")
-        cell.stone:Hide()
-        UI.AddPopIn(cell.stone)
-
-        cell.rim = cell:CreateTexture(nil, "ARTWORK", nil, 1)
-        cell.rim:SetTexture(UI.MEDIA .. "StoneRim")
-        cell.rim:SetAllPoints(cell.stone)
-        cell.rim:Hide()
-
-        -- Marks the stones placed in the latest turn, and the winning line.
-        cell.mark = cell:CreateTexture(nil, "OVERLAY")
-        cell.mark:SetTexture(UI.MEDIA .. "ButtonGlow")
-        cell.mark:SetPoint("CENTER")
-        cell.mark:SetSize(SPACING + 10, SPACING + 10)
-        cell.mark:SetBlendMode("ADD")
-        cell.mark:Hide()
-        UI.AddPulse(cell.mark, 0.25, 0.5)
-
-        -- Ghost stone under the mouse when it's your turn.
-        cell.ghost = cell:CreateTexture(nil, "HIGHLIGHT")
-        cell.ghost:SetTexture(UI.MEDIA .. "Stone")
-        cell.ghost:SetSize(SPACING - 1, SPACING - 1)
-        cell.ghost:SetPoint("CENTER")
-
-        local shake = cell:CreateAnimationGroup()
-        for n, dx in ipairs({ 3, -6, 5, -2 }) do
+    -- One invisible button per column: hover shows where the checker would
+    -- land, click drops it.
+    columns = {}
+    for col = 1, COLS do
+        local b = CreateFrame("Button", nil, rack)
+        b:SetSize(CELL, ROWS * CELL)
+        b:SetPoint("TOPLEFT", PAD + (col - 1) * CELL, -PAD)
+        b:SetFrameLevel(panel:GetFrameLevel() + 2)
+        b.col = col
+        local glow = b:CreateTexture(nil, "HIGHLIGHT")
+        glow:SetColorTexture(1, 1, 0.8, 0.10)
+        glow:SetAllPoints()
+        b.ghost = MakeChip(b, CELL - 6)
+        b.ghost:SetAlpha(0.5)
+        b.ghost:Hide()
+        b:SetScript("OnEnter", function(self) hoverCol = self.col; Refresh() end)
+        b:SetScript("OnLeave", function(self) if hoverCol == self.col then hoverCol = nil; Refresh() end end)
+        b:SetScript("OnClick", OnColumnClick)
+        local shake = b:CreateAnimationGroup()
+        for n, dx in ipairs({ 4, -8, 6, -2 }) do
             local t = shake:CreateAnimation("Translation")
             t:SetOffset(dx, 0)
             t:SetDuration(0.04)
             t:SetOrder(n)
         end
-        cell.shake = shake
-
-        cell:SetScript("OnClick", OnCellClick)
-        cells[i] = cell
+        b.shake = shake
+        columns[col] = b
     end
 
-    -- Side card: players, stones left this turn, rules.
+    -- Side card: players and rules.
     side = UI.Card(area)
-    side:SetPoint("TOPLEFT", boardFrame, "TOPRIGHT", 14, 0)
+    side:SetPoint("TOPLEFT", rack, "TOPRIGHT", 22, 0)
     side:SetPoint("BOTTOMRIGHT", area, "BOTTOMRIGHT", 0, 0)
     local title = UI.Text(side, "Connect 6", { fancy = true, size = 22, ink = true })
     title:SetPoint("TOPLEFT", 16, -14)
-
     side.rows = {}
     for seat = 1, 2 do
         local row = CreateFrame("Frame", nil, side)
-        row:SetSize(280, 40)
-        row:SetPoint("TOPLEFT", 14, -46 - (seat - 1) * 44)
-        row.stone = row:CreateTexture(nil, "ARTWORK")
-        row.stone:SetTexture(UI.MEDIA .. "Stone")
-        row.stone:SetSize(26, 26)
-        row.stone:SetPoint("LEFT", 2, 0)
-        row.rim = row:CreateTexture(nil, "ARTWORK", nil, 1)
-        row.rim:SetTexture(UI.MEDIA .. "StoneRim")
-        row.rim:SetAllPoints(row.stone)
-        row.crest = row:CreateTexture(nil, "ARTWORK")
-        row.crest:SetSize(22, 22)
-        row.crest:SetPoint("LEFT", row.stone, "RIGHT", 6, 0)
+        row:SetSize(250, 40)
+        row:SetPoint("TOPLEFT", 14, -48 - (seat - 1) * 46)
+        row.chip = MakeChip(row, 34)
+        row.chip:SetPoint("LEFT", 2, 0)
         row.name = UI.Text(row, "", { ink = true })
-        row.name:SetPoint("TOPLEFT", row.crest, "TOPRIGHT", 6, 2)
+        row.name:SetPoint("TOPLEFT", row.chip, "TOPRIGHT", 8, -2)
         row.sub = UI.Text(row, "", { ink = true, font = "GameFontHighlightSmall" })
         row.sub:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
-        row.arrow = row:CreateTexture(nil, "OVERLAY")
-        row.arrow:SetTexture(UI.MEDIA .. "ButtonGlow")
-        row.arrow:SetPoint("TOPLEFT", -8, 6)
-        row.arrow:SetPoint("BOTTOMRIGHT", 8, -6)
-        row.arrow:SetBlendMode("ADD")
-        row.arrow:SetVertexColor(1, 0.75, 0.2)
-        UI.AddPulse(row.arrow, 0.3, 0.6)
+        row.glow = row:CreateTexture(nil, "OVERLAY")
+        row.glow:SetTexture(UI.MEDIA .. "ButtonGlow")
+        row.glow:SetPoint("TOPLEFT", -8, 6)
+        row.glow:SetPoint("BOTTOMRIGHT", 8, -6)
+        row.glow:SetBlendMode("ADD")
+        row.glow:SetVertexColor(1, 0.75, 0.2)
+        UI.AddPulse(row.glow, 0.3, 0.6)
         side.rows[seat] = row
     end
-
-    side.pips = {}
-    local pipLabel = UI.Text(side, "Stones this turn:", { ink = true })
-    pipLabel:SetPoint("TOPLEFT", 18, -150)
-    side.pipLabel = pipLabel
-    for i = 1, 2 do
-        local pip = side:CreateTexture(nil, "ARTWORK")
-        pip:SetTexture(UI.MEDIA .. "Stone")
-        pip:SetSize(22, 22)
-        pip:SetPoint("LEFT", pipLabel, "RIGHT", 6 + (i - 1) * 26, 0)
-        side.pips[i] = pip
-    end
-
     local rules = UI.Text(side,
-        "First move: 1 stone.\nEvery turn after: 2 stones.\nSix or more in a row wins.\n\nGlowing stones were the last turn's moves.",
+        "Take turns dropping one chip into a column. It falls to the lowest open hole.\n\n" ..
+        "Get six in a row: across, up and down, or diagonally.\n\nThe glowing chip was the last move.",
         { ink = true, font = "GameFontHighlightSmall" })
-    rules:SetPoint("TOPLEFT", 18, -184)
-    rules:SetWidth(280)
+    rules:SetPoint("TOPLEFT", 18, -152)
+    rules:SetPoint("RIGHT", side, "RIGHT", -16, 0)
     rules:SetTextColor(0.40, 0.30, 0.18)
 end
 
-local function Refresh()
+-- Make a checker fall from the top row into hole i.
+local function DropAnimation(i)
+    local h = holes[i]
+    local _, row = ColRow(i)
+    local dist = (row - 1) * CELL
+    if dist <= 0 then return end
+    local t = 0.08 + 0.045 * (row - 1)
+    h.up:SetOffset(0, dist); h.down:SetOffset(0, -dist); h.down:SetDuration(t)
+    h.fall:Stop()
+    h.fall:Play()
+end
+
+function Refresh()
     local s = current
-    if not s or not boardFrame then return end
+    if not s or not rack then return end
     local d = s.data
     local board = d.board
     local myTurn = GG.Turns:IsMyTurn(s)
 
-    -- Which stones to mark: the winning line if the game is over, else the
-    -- stones of the latest turn (or the current turn's, once it has started).
     local marked = {}
     if d.winLine then
         for _, i in ipairs(d.winLine) do marked[i] = true end
-    else
-        local list = (#d.turnStones > 0) and d.turnStones or d.lastStones
-        for _, i in ipairs(list) do marked[i] = true end
+    elseif d.lastMove then
+        marked[d.lastMove] = true
     end
 
-    local mySeat = s:SeatOf(s:Me())
-    local ghost = mySeat and StoneColor(s, mySeat)
-
-    for i, cell in ipairs(cells) do
+    for i, h in ipairs(holes) do
         local seat = board[i]
         if seat ~= 0 then
-            local c = StoneColor(s, seat)
-            cell.stone:SetVertexColor(c[1], c[2], c[3])
-            local r = RIM[seat]
-            cell.rim:SetVertexColor(r[1], r[2], r[3])
-            if not cell.stone:IsShown() then
-                cell.stone:Show()
-                cell.stone.popIn:Play()
+            PaintChip(h.chip, s, seat)
+            if not h.chip:IsShown() then
+                h.chip:Show()
+                if d.animate == i then DropAnimation(i) end
             end
-            cell.rim:Show()
         else
-            cell.stone:Hide()
-            cell.rim:Hide()
+            h.chip:Hide()
         end
+        h.mark:SetShown(marked[i] == true)
         if marked[i] then
-            cell.mark:SetVertexColor(d.winLine and 1 or 1, d.winLine and 0.85 or 1, d.winLine and 0.3 or 0.8)
-            cell.mark:Show()
-            cell.mark.pulse:Play()
-        else
-            cell.mark:Hide()
-        end
-        if ghost and myTurn and seat == 0 then
-            cell.ghost:SetVertexColor(ghost[1], ghost[2], ghost[3], 0.55)
-            cell.ghost:SetAlpha(0.55)
-        else
-            cell.ghost:SetAlpha(0)
+            if d.winLine then h.mark:SetVertexColor(1, 0.85, 0.3) else h.mark:SetVertexColor(1, 1, 0.85) end
+            h.mark.pulse:Play()
         end
     end
 
-    -- Side card.
+    -- Ghost checker where your drop would land.
+    local mySeat = s:SeatOf(s:Me())
+    for col, b in ipairs(columns) do
+        local row = LandingRow(board, col)
+        if myTurn and mySeat and row and col == hoverCol then
+            PaintChip(b.ghost, s, mySeat)
+            b.ghost:ClearAllPoints()
+            b.ghost:SetPoint("CENTER", b, "TOPLEFT", CELL / 2, -((row - 1) * CELL + CELL / 2))
+            b.ghost:Show()
+        else
+            b.ghost:Hide()
+        end
+    end
+
     local currentPlayer = GG.Turns:Current(s)
     for seat, row in ipairs(side.rows) do
         local name = s.players[seat]
-        local c = StoneColor(s, seat)
-        row.stone:SetVertexColor(c[1], c[2], c[3])
-        local r = RIM[seat]
-        row.rim:SetVertexColor(r[1], r[2], r[3])
-        GG.Theme:SetCrest(row.crest, s:GetFaction(name))
+        PaintChip(row.chip, s, seat)
         row.name:SetText(Util.ShortName(name) .. (Util.IsMe(name) and " (you)" or ""))
-        local count = 0
-        for i = 1, N * N do if board[i] == seat then count = count + 1 end end
-        row.sub:SetText(count .. " stones on the board")
         local active = s.status == "playing" and name == currentPlayer
-        row.arrow:SetShown(active)
-        if active then row.arrow.pulse:Play() end
-    end
-
-    local left = (s.status == "playing") and d.stonesLeft or 0
-    for i, pip in ipairs(side.pips) do
-        local seat = currentPlayer and s:SeatOf(currentPlayer)
-        local c = seat and StoneColor(s, seat) or { 0.5, 0.5, 0.5 }
-        pip:SetVertexColor(c[1], c[2], c[3])
-        pip:SetShown(i <= left)
-    end
-    side.pipLabel:SetShown(s.status == "playing")
-
-    if s.status == "playing" and myTurn then
-        UI:SetGameStatus(UI.Gold(left == 1 and "Your turn! Place 1 stone" or ("Your turn! Place " .. left .. " stones")))
-    else
-        UI:SetGameStatus(nil)
+        row.sub:SetText(active and (Util.IsMe(name) and "Your turn!" or "Thinking...") or (seat == 1 and "Gold rim" or "Silver rim"))
+        row.glow:SetShown(active)
+        if active then row.glow.pulse:Play() end
     end
 end
 
@@ -362,13 +386,10 @@ function Game.OnSessionStart(session)
     current = session
     local d = session.data
     d.board = EmptyBoard()
-    d.count = 0
-    d.stonesLeft = 1        -- the very first move is a single stone
-    d.turnStones = {}       -- stones placed so far this turn
-    d.lastStones = {}       -- stones of the previous turn
+    d.lastMove = nil
     d.winLine = nil
-    if not boardFrame then BuildBoard() end
-    boardFrame:Show()
+    if not rack then BuildRack() end
+    rack:Show()
     side:Show()
     Refresh()
 
@@ -377,27 +398,24 @@ function Game.OnSessionStart(session)
     end
 end
 
--- Host: check a stone.
+-- Host: check a drop.
 function Game.OnAction(session, sender, op, args)
-    if op ~= "PLACE" or session.status ~= "playing" then return end
+    if op ~= "DROP" or session.status ~= "playing" then return end
+    if GG.Turns:Current(session) ~= sender then return end
+    local col = tonumber(args[1])
+    if not col or col % 1 ~= 0 or col < 1 or col > COLS then return end
     local d = session.data
-    if GG.Turns:Current(session) ~= sender or d.stonesLeft <= 0 then return end
-    local x, y = tonumber(args[1]), tonumber(args[2])
-    if not x or not y or x % 1 ~= 0 or y % 1 ~= 0 or not OnBoard(x, y) then return end
-    if d.board[Idx(x, y)] ~= 0 then return end
+    local row = LandingRow(d.board, col)
+    if not row then return end                       -- column full
 
-    session:Broadcast("SET", Idx(x, y), session:SeatOf(sender))
+    session:Broadcast("SET", Idx(col, row), session:SeatOf(sender))
 
-    if WinningLine(d.board, x, y) then
+    if WinningLine(d.board, col, row) then
         session:End({ winners = { sender } })
-    elseif d.count >= N * N then
+    elseif IsFull(d.board) then
         session:End({ draw = true })
-    elseif d.stonesLeft <= 0 then
-        session:Broadcast("NEXT")
-        GG.Turns:Advance(session)
     else
-        -- Second stone still to place: give a fresh look at the clock.
-        GG.Turns:ResetTimer(session)
+        GG.Turns:Advance(session)
     end
 end
 
@@ -408,37 +426,25 @@ function Game.OnState(session, op, args)
         local i, seat = tonumber(args[1]), tonumber(args[2])
         if i and seat and d.board[i] == 0 then
             d.board[i] = seat
-            d.count = d.count + 1
-            d.stonesLeft = d.stonesLeft - 1
-            d.turnStones[#d.turnStones + 1] = i
+            d.lastMove = i
+            d.animate = i
         end
-    elseif op == "NEXT" then
-        d.lastStones = d.turnStones
-        d.turnStones = {}
-        d.stonesLeft = 2
     elseif op == "SNAP" then
         d.board = BoardFromString(args[1] or "")
-        d.stonesLeft = tonumber(args[2]) or 2
-        d.turnStones = ListFromString(args[3])
-        d.lastStones = ListFromString(args[4])
-        d.count = 0
-        for i = 1, N * N do if d.board[i] ~= 0 then d.count = d.count + 1 end end
+        d.lastMove = tonumber(args[2])
+        d.animate = nil
     end
     if session == current then Refresh() end
 end
 
 function Game.OnSyncRequest(session, player)
-    local d = session.data
-    session:SendTo(player, "SNAP", BoardToString(d.board), d.stonesLeft,
-        ListToString(d.turnStones), ListToString(d.lastStones))
+    session:SendTo(player, "SNAP", BoardToString(session.data.board), session.data.lastMove or "")
 end
 
 function Game.OnSessionEnd(session, result)
     local d = session.data
-    local last = d.turnStones[#d.turnStones]
-    if last and not result.draw then
-        local x, y = XY(last)
-        d.winLine = WinningLine(d.board, x, y)
+    if d.lastMove and not result.draw then
+        d.winLine = WinningLine(d.board, ColRow(d.lastMove))
     end
     if session == current then Refresh() end
 end
@@ -446,7 +452,7 @@ end
 function Game.OnSessionClosed(session)
     if session == current then
         current = nil
-        if boardFrame then boardFrame:Hide(); side:Hide() end
+        if rack then rack:Hide(); side:Hide() end
     end
 end
 
@@ -456,24 +462,24 @@ end)
 
 -------------------------------------------------------------------------------
 -- Practice bot
---
--- Looks at every "window" of 6 cells in a row. A window with only our stones
--- is a chance; one with only theirs is a threat. Each empty cell is scored by
--- the windows it belongs to, and the bot takes the best cell, one stone at a
--- time. Simple, but it blocks fours and finishes its own sixes.
+--   1. Win now if it can.
+--   2. Otherwise block the opponent's winning drop.
+--   3. Otherwise score each column by the six-long "windows" its landing
+--      hole belongs to, and avoid drops that hand the opponent a win in the
+--      hole right above.
 -------------------------------------------------------------------------------
-local ATTACK = { [0] = 1, 8, 40, 220, 3000, 1000000 }   -- by our stones already in the window
-local DEFEND = { [0] = 0, 6, 30, 160, 2500, 500000 }    -- by their stones already in the window
+local ATTACK = { [0] = 1, 6, 30, 160, 1200, 100000 }
+local DEFEND = { [0] = 0, 4, 22, 120, 1000, 50000 }
 
-local function ScoreCell(board, x, y, me)
+local function ScoreHole(board, col, row, me)
     local score = 0
     for _, d in ipairs(DIRS) do
         for start = -(NEED - 1), 0 do
             local mine, theirs, valid = 0, 0, true
             for k = 0, NEED - 1 do
-                local cx, cy = x + d[1] * (start + k), y + d[2] * (start + k)
-                if not OnBoard(cx, cy) then valid = false; break end
-                local v = board[Idx(cx, cy)]
+                local c, r = col + d[1] * (start + k), row + d[2] * (start + k)
+                if not OnBoard(c, r) then valid = false; break end
+                local v = board[Idx(c, r)]
                 if v == me then mine = mine + 1 elseif v ~= 0 then theirs = theirs + 1 end
             end
             if valid then
@@ -485,44 +491,56 @@ local function ScoreCell(board, x, y, me)
     return score
 end
 
-local function BestCell(board, me)
-    local best, bestScore = nil, -1
-    local any = false
-    for i = 1, N * N do
-        if board[i] == 0 then
-            local x, y = XY(i)
-            -- Only consider cells near existing stones.
-            local near = false
-            for dy = -2, 2 do
-                for dx = -2, 2 do
-                    if OnBoard(x + dx, y + dy) and board[Idx(x + dx, y + dy)] ~= 0 then near = true end
-                end
-            end
-            if near then
-                any = true
-                local sc = ScoreCell(board, x, y, me) + math.random() * 3
-                if sc > bestScore then best, bestScore = i, sc end
-            end
+local function WinningDrop(board, seat)
+    for col = 1, COLS do
+        local row = LandingRow(board, col)
+        if row then
+            board[Idx(col, row)] = seat
+            local wins = WinningLine(board, col, row) ~= nil
+            board[Idx(col, row)] = 0
+            if wins then return col end
         end
     end
-    if not any then return Idx(10, 10) end
+end
+
+local function BestColumn(board, me)
+    local them = (me == 1) and 2 or 1
+    local win = WinningDrop(board, me)
+    if win then return win end
+    local block = WinningDrop(board, them)
+    if block then return block end
+
+    local best, bestScore = nil, -math.huge
+    for col = 1, COLS do
+        local row = LandingRow(board, col)
+        if row then
+            local score = ScoreHole(board, col, row, me)
+            -- Don't set up the opponent: would our checker let them win above it?
+            if row > 1 then
+                board[Idx(col, row)] = me
+                board[Idx(col, row - 1)] = them
+                if WinningLine(board, col, row - 1) then score = score - 40000 end
+                board[Idx(col, row - 1)] = 0
+                board[Idx(col, row)] = 0
+            end
+            -- A slight taste for the middle, plus a pinch of chaos.
+            score = score + (COLS / 2 - math.abs(col - (COLS + 1) / 2)) * 2 + math.random() * 3
+            if score > bestScore then best, bestScore = col, score end
+        end
+    end
     return best
 end
 
 function Game.BotAction(session, bot)
-    local d = session.data
-    if session.status ~= "playing" or GG.Turns:Current(session) ~= bot or d.stonesLeft <= 0 then return end
-    local i = BestCell(d.board, session:SeatOf(bot))
-    if not i then return end
-    local x, y = XY(i)
-    session:ActAs(bot, "PLACE", x, y)
-    -- Second stone of the turn, after a short "thinking" pause.
-    if session.status == "playing" and GG.Turns:Current(session) == bot and d.stonesLeft > 0 then
-        C_Timer.After(0.7, function() Game.BotAction(session, bot) end)
-    end
+    if session.status ~= "playing" or GG.Turns:Current(session) ~= bot then return end
+    local col = BestColumn(session.data.board, session:SeatOf(bot))
+    if col then session:ActAs(bot, "DROP", col) end
 end
 
 -- Exposed for the test suite (tools/wowsim). Not part of the module API.
-Game._test = { WinningLine = WinningLine, Idx = Idx, XY = XY, BestCell = BestCell, N = N }
+Game._test = {
+    WinningLine = WinningLine, LandingRow = LandingRow, BestColumn = BestColumn,
+    Idx = Idx, ColRow = ColRow, COLS = COLS, ROWS = ROWS,
+}
 
 GG:RegisterGame(Game)

@@ -310,34 +310,55 @@ def make_slot():
 
 
 def make_connect6():
-    """Connect 6 pieces: a light wooden board, glossy stones and a rim.
-    Stones are drawn white/grey and tinted by faction in game."""
-    # Board: light, tileable wood (grain runs horizontally).
-    board = wood_strip(256, 256, (206, 164, 104), True, 11)
-    save_tga(board, "BoardWood")
-
-    # Stone: a shaded sphere with a highlight (64x64).
+    """Connect 6 (vertical rack, like the classic box game).
+    RackHole: one 64x64 tile of the rack's front panel with a round hole in it
+    (transparent), tiled in game; the checkers sit BEHIND the panel, so they
+    show through the holes. Checker: a ridged disc, light grey so it can be
+    tinted per faction. StoneRim: a ring drawn on top of a checker."""
     size = 64
-    stone = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    px = stone.load()
-    c, r = size / 2 - 0.5, size / 2 - 3
-    for y in range(size):
-        for x in range(size):
-            dx, dy = (x - c) / r, (y - c) / r
-            d2 = dx * dx + dy * dy
-            if d2 <= 1:
-                # light from the top-left
-                nz = math.sqrt(1 - d2)
-                light = max(0.0, (-dx * 0.45 - dy * 0.55 + nz * 0.7))
-                v = int(110 + 145 * min(1.0, light))
-                edge = 1 if d2 < 0.92 else max(0.0, (1 - d2) / 0.08)
-                px[x, y] = (v, v, v, int(255 * edge))
-    hl = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    ImageDraw.Draw(hl).ellipse([16, 12, 30, 24], fill=(255, 255, 255, 200))
-    stone.alpha_composite(hl.filter(ImageFilter.GaussianBlur(2.5)))
-    save_tga(stone, "Stone")
+    # Rack tile: golden plastic/brass panel with a bevelled hole.
+    tile = Image.new("RGBA", (size, size), (238, 190, 52, 255))
+    d = ImageDraw.Draw(tile)
+    d.line([(0, 0), (size, 0)], fill=(255, 226, 120, 255), width=2)          # top light
+    d.line([(0, size - 1), (size, size - 1)], fill=(170, 120, 20, 255), width=2)
+    c, r = size / 2, 24
+    # bevel ring around the hole: dark at the top (inner shadow), light at the bottom
+    for i in range(6):
+        t = i / 6
+        d.ellipse([c - r - 6 + i, c - r - 6 + i, c + r + 6 - i, c + r + 6 - i],
+                  outline=lerp((150, 104, 12), (255, 228, 130), t) + (255,), width=1)
+    mask = Image.new("L", (size, size), 255)
+    ImageDraw.Draw(mask).ellipse([c - r, c - r, c + r, c + r], fill=0)
+    tile.putalpha(mask)
+    save_tga(tile, "RackHole")
 
-    # Rim drawn around a stone: gold or silver for seat 1 / seat 2.
+    # Chip: a poker chip, light grey so it can be tinted (red for Horde, blue
+    # for Alliance). The white edge notches are a separate, untinted texture
+    # (ChipNotches) laid on top, and the faction crest goes in the middle.
+    chip = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(chip)
+    d.ellipse([2, 2, size - 3, size - 3], fill=(225, 225, 225, 255), outline=(40, 40, 40, 255), width=3)
+    d.ellipse([12, 12, size - 13, size - 13], fill=(200, 200, 200, 255), outline=(150, 150, 150, 255), width=2)
+    d.ellipse([16, 16, size - 17, size - 17], outline=(245, 245, 245, 255), width=2)   # inlay ring
+    hl = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(hl).ellipse([12, 8, 34, 20], fill=(255, 255, 255, 120))
+    chip.alpha_composite(hl.filter(ImageFilter.GaussianBlur(3)))
+    save_tga(chip, "Chip")
+
+    notches = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    nd = ImageDraw.Draw(notches)
+    c0 = size / 2 - 0.5
+    for k in range(8):
+        a0 = math.radians(k * 45 - 9)
+        a1 = math.radians(k * 45 + 9)
+        pts = []
+        for a in (a0, (a0 + a1) / 2, a1):
+            pts.append((c0 + 28.5 * math.cos(a), c0 + 28.5 * math.sin(a)))
+        for a in (a1, (a0 + a1) / 2, a0):
+            pts.append((c0 + 21 * math.cos(a), c0 + 21 * math.sin(a)))
+        nd.polygon(pts, fill=(250, 248, 240, 255))
+    save_tga(notches, "ChipNotches")
+
     rim = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     ImageDraw.Draw(rim).ellipse([2, 2, size - 3, size - 3], outline=(255, 255, 255, 255), width=6)
     save_tga(rim, "StoneRim")

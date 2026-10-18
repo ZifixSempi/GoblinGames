@@ -5,8 +5,8 @@ handles invites, networking, turns, timers, stats, theming and the window; a
 module only supplies its rules, its board, and its message handlers.
 
 `GoblinGames_TicTacToe/TicTacToe.lua` is the simplest reference implementation;
-`GoblinGames_Connect6/Connect6.lua` shows multi-action turns, a side panel,
-a compact header and a smarter bot. Copy one when starting a new game.
+`GoblinGames_Connect6/Connect6.lua` shows animated pieces built from several
+layers, a side panel, a compact header and a smarter bot. Copy one when starting a new game.
 
 ## 1. Files
 

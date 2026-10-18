@@ -4,10 +4,10 @@
 
 ### Milestone 2: Connect 6
 
-- New game: **Connect 6**. 19x19 board, the first move is one stone, then two stones per turn, and six or more in a row wins.
-- Stones take their owner's faction colour, with a gold or silver rim per seat. The last turn's stones glow, and the winning line lights up.
-- A ghost stone follows your cursor on your turn, and a side panel shows players, stones left this turn, and the rules.
-- Practice bot that blocks threats and finishes its own sixes.
+- New game: **Connect 6**, the "vertical checkers" game. A 9x8 standing rack: drop one chip per turn into a column, and it falls to the lowest open hole. Six or more in a row (across, up and down, or diagonal) wins.
+- Poker-chip pieces: red chips with the Horde crest, blue chips with the Alliance crest. A gold or silver rim marks the seat, and same-faction opponents get a darker shade.
+- Chips fall into place with an animation. A ghost chip shows where your drop will land, the last move glows, and the winning line lights up.
+- Practice bot: it takes wins, blocks yours, and avoids setting you up.
 - Core: a compact game header for big boards (`compactHeader = true`).
 - Fixed: the window's close button now closes the window.
 - New logo and goblin art based on Zifix's character.
