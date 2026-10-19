@@ -48,6 +48,9 @@ end
 function Cards.RankLabel(rank) return rank == "T" and "10" or rank end
 function Cards.RankName(rank) return RANK_NAME[rank] or rank end
 function Cards.RankPlural(rank) return RANK_PLURAL[rank] or rank end
+function Cards.SuitName(suit) return SUIT_NAME[suit] or suit end
+--- "Heart", "Spade"...: one of a suit.
+function Cards.SuitSingular(suit) return ((SUIT_NAME[suit] or suit):gsub("s$", "")) end
 function Cards.Name(card)
     return Cards.RankName(Cards.Rank(card)) .. " of " .. SUIT_NAME[Cards.Suit(card)]
 end

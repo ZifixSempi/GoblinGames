@@ -11,6 +11,7 @@
 #   GoblinGames_Deathroll/
 #   GoblinGames_Bingo/
 #   GoblinGames_GoFish/
+#   GoblinGames_CrazyEights/
 #
 # When you add a game module, add its folder here too.
 
@@ -23,6 +24,7 @@ move-folders:
   GoblinGames/GoblinGames_Deathroll: GoblinGames_Deathroll
   GoblinGames/GoblinGames_Bingo: GoblinGames_Bingo
   GoblinGames/GoblinGames_GoFish: GoblinGames_GoFish
+  GoblinGames/GoblinGames_CrazyEights: GoblinGames_CrazyEights
 
 # Libraries are committed under GoblinGames/Libs, so no externals are needed.
 

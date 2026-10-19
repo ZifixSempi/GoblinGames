@@ -156,6 +156,9 @@ Cards.SendHand(session, player, hand)           -- whispers "HAND" to that playe
 
 local c = GG.UI.PlayingCard(parent, 64)         -- a card on screen (height = 1.43 x width)
 c:SetCard("QH"); c:SetBack(); c:SetSelected(true); c:SetDim(true); c.onClick = function(card) end
+local seat = GG.UI.CardSeat(parent)             -- an opponent: crest, name, card backs, score, badge
+seat:SetPlayer(session, name); seat:SetCount(5); seat:SetBadge("LAST CARD!"); seat:SetTurn(true)
+local pip = GG.UI.SuitIcon(parent, 40); pip:SetSuit("H")
 ```
 
 Pattern for hidden information (see Go Fish): keep the real hands and deck in

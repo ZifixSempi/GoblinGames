@@ -9,6 +9,9 @@
       c:SetSelected(true)  c:SetDim(true)  c:SetGlow(true)
       c.onClick = function(card, button) ... end
 
+      local icon = GG.UI.SuitIcon(parent, 32)  -- a suit pip: icon:SetSuit("H")
+      local seat = GG.UI.CardSeat(parent)      -- an opponent's seat (see below)
+
   All art is ours (Media\CardFace, CardBack, Suits). Everything is drawn on
   the card's own frame with draw layers, so the stacking can't get mixed up.
 ------------------------------------------------------------------------------]]
@@ -124,4 +127,110 @@ function UI.PlayingCard(parent, width)
 
     c:SetBack()
     return c
+end
+
+--- A big suit pip on its own (e.g. the suit an Eight called for).
+function UI.SuitIcon(parent, size, layer)
+    local t = SuitTexture(parent, layer or "ARTWORK", size or 32)
+    function t:SetSuit(suit)
+        local sc = SUIT_COORDS[suit]
+        if sc then self:SetTexCoord(sc[1], sc[2], 0, 1); self:Show() else self:Hide() end
+    end
+    t:Hide()
+    return t
+end
+
+-------------------------------------------------------------------------------
+-- An opponent's seat for card games: a parchment plate with their crest and
+-- name, a little fan of card backs with how many they hold, a score corner,
+-- a badge line, and a glow when it's their turn.
+--
+--   local seat = UI.CardSeat(parent)       -- 134 x 78
+--   seat:SetPlayer(session, name)
+--   seat:SetCount(5)  seat:SetScore("3")  seat:SetBadge("LAST CARD!")
+--   seat:SetTurn(true)  seat:SetTarget(true)
+--   seat.onClick = function(seat) ... end   seat.tooltip = "text"
+-------------------------------------------------------------------------------
+function UI.CardSeat(parent)
+    local seat = CreateFrame("Button", nil, parent)
+    seat:SetSize(134, 78)
+    seat.parts = UI.NineSlice(seat, UI.MEDIA .. "Parchment", 128, 24, 14)
+
+    seat.glow = seat:CreateTexture(nil, "OVERLAY")
+    seat.glow:SetTexture(UI.MEDIA .. "ButtonGlow")
+    seat.glow:SetPoint("TOPLEFT", -10, 8)
+    seat.glow:SetPoint("BOTTOMRIGHT", 10, -8)
+    seat.glow:SetBlendMode("ADD")
+    seat.glow:SetVertexColor(1, 0.75, 0.2)
+    seat.glow:Hide()
+    UI.AddPulse(seat.glow, 0.3, 0.6)
+
+    seat.ring = seat:CreateTexture(nil, "OVERLAY", nil, 1)
+    seat.ring:SetTexture(UI.MEDIA .. "Ring")
+    seat.ring:SetSize(26, 26)
+    seat.ring:SetPoint("TOPRIGHT", -4, -4)
+    seat.ring:SetVertexColor(0.3, 1, 0.3)
+    seat.ring:Hide()
+
+    seat.crest = seat:CreateTexture(nil, "ARTWORK")
+    seat.crest:SetSize(20, 20)
+    seat.crest:SetPoint("TOPLEFT", 8, -8)
+    seat.name = UI.Text(seat, "", { ink = true, font = "GameFontNormalSmall" })
+    seat.name:SetPoint("LEFT", seat.crest, "RIGHT", 4, 0)
+    seat.name:SetWidth(84)
+    seat.name:SetJustifyH("LEFT")
+
+    seat.backs = {}
+    for b = 1, 3 do
+        local t = seat:CreateTexture(nil, "ARTWORK", nil, b)
+        t:SetTexture(UI.MEDIA .. "CardBack")
+        t:SetTexCoord(0, 1, 0, CROP)
+        t:SetSize(24, 34)
+        t:SetPoint("BOTTOMLEFT", 10 + (b - 1) * 9, 8)
+        seat.backs[b] = t
+    end
+    seat.count = UI.Text(seat, "", { fancy = true, size = 15, ink = true })
+    seat.count:SetPoint("LEFT", seat.backs[3], "RIGHT", 4, 0)
+
+    seat.score = UI.Text(seat, "", { fancy = true, size = 18, ink = true, justify = "RIGHT" })
+    seat.score:SetPoint("BOTTOMRIGHT", -10, 10)
+
+    seat.badge = UI.Text(seat, "", { fancy = true, size = 13, justify = "CENTER" })
+    seat.badge:SetPoint("TOP", seat, "BOTTOM", 0, -2)
+    seat.badge:SetTextColor(1, 0.35, 0.2)
+    UI.AddPulse(seat.badge, 0.5, 0.5)
+
+    function seat:SetPlayer(session, name)
+        self.player = name
+        GG.Theme:SetCrest(self.crest, session:GetFaction(name))
+        self.name:SetText(GG.Util.ShortName(name) .. (session.left[name] and " (left)" or ""))
+    end
+    function seat:SetCount(n)
+        for b, t in ipairs(self.backs) do t:SetShown(n >= b) end
+        self.count:SetText(n)
+    end
+    function seat:SetScore(text) self.score:SetText(text or "") end
+    function seat:SetBadge(text)
+        self.badge:SetText(text or "")
+        self.badge:SetShown(text ~= nil and text ~= "")
+        if text and text ~= "" then self.badge.pulse:Play() end
+    end
+    function seat:SetTurn(on)
+        self.glow:SetShown(on and true or false)
+        if on then self.glow.pulse:Play() end
+    end
+    function seat:SetTarget(on) self.ring:SetShown(on and true or false) end
+
+    seat:SetScript("OnClick", function(self)
+        if self.onClick then GG:Safe("Cards", self.onClick, self) end
+    end)
+    seat:SetScript("OnEnter", function(self)
+        if not self.tooltip or not self.player then return end
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:AddLine(GG.Util.ShortName(self.player))
+        GameTooltip:AddLine(self.tooltip, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    seat:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return seat
 end

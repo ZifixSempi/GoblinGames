@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Milestone 6: Crazy Eights
+
+- New game: **Crazy Eights** for 2-6 players, Uno-style. Cards that fit glow and pop up on your turn; click one to play it. Eights are wild and open a suit picker. Can't play? Draw a card (button or the draw pile), then play it or Pass.
+  - **Goblin rules** (lobby option, on by default): a 2 makes the next player draw two and miss their turn, a Queen skips, an Ace reverses the order. **Classic** turns the powers off.
+  - Seats flash **LAST CARD!** when someone is down to one card. First one out wins.
+  - The discard pile is reshuffled when the draw pile runs out. If both run dry and nobody can play for a whole lap, the fewest cards wins.
+  - Hidden hands work like Go Fish: the host deals and checks every card played; each player only ever receives their own hand.
+  - Running out of time plays a matching card for you, or draws and passes. Leaving shuffles your cards into the draw pile.
+  - Practice against the Training Dummy.
+- Core: `GG.UI.CardSeat` (an opponent's seat for card games) and `GG.UI.SuitIcon`, plus `Cards.SuitName` / `Cards.SuitSingular`.
+
+
 ### Milestone 5: Card engine, Go Fish and How to play
 
 - New game: **Go Fish** for 2-6 players, played with pairs. Pairs in your hand glow green with a "PAIR!" tag: click one to lay it down and score a point (any time, even on someone else's turn). On your turn, click a card, click a player and press Ask. The pond sits in the middle with a running log of who asked whom, and the most pairs wins (ties share).

@@ -1,0 +1,16 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r - Crazy Eights
+## Notes: Crazy Eights for Goblin Games: match suit or rank, Eights are wild, first one out wins.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Note_01
+## Category: Miscellaneous
+## Group: GoblinGames
+## X-Curse-Project-ID: 000000
+## LoadOnDemand: 1
+## Dependencies: GoblinGames
+
+# Loaded by the core the first time someone hosts, joins or practices
+# Crazy Eights (C_AddOns.LoadAddOn). Nothing here runs at login.
+
+CrazyEights.lua

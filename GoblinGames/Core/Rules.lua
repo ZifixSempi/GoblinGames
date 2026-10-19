@@ -81,9 +81,13 @@ GG.RULES = {
         title = "Crazy Eights",
         intro = "Get rid of all your cards first. Eights are wild!",
         sections = {
-            { "Your turn", "Play a card that matches the top card's suit or rank. Can't? Draw a card." },
-            { "Eights", "An 8 can be played on anything, and you pick the next suit." },
-            { "Winning", "The first player with no cards left wins." },
+            { "Your turn", "Play one card that matches the top card of the pile: same suit OR same rank. Cards you can play glow and pop up; click one to play it." },
+            { "Eights are wild", "An 8 can go on anything. When you play one, pick the suit the next player has to follow." },
+            { "Can't play?", "Press Draw a card (or click the draw pile). If the new card fits you can play it; otherwise press Pass. You only get one draw per turn." },
+            { "Goblin rules", "On by default (the host can switch to Classic in the lobby):\n  2: the next player draws 2 cards and misses their turn.\n  Q: the next player is skipped.\n  A: reverse the play order. With two players, you go again." },
+            { "Last card!", "When someone is down to one card, their seat flashes LAST CARD!" },
+            { "Winning", "The first player to play their last card wins. If the draw pile and the discard pile both run out and nobody can play, the fewest cards wins." },
+            { "Out of time?", "The goblin plays a matching card for you, or draws and passes." },
         },
     },
 

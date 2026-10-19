@@ -5,7 +5,7 @@ guild while you wait for queues, a raid to form, or guild night to start.
 Frames are themed Horde or Alliance, and every piece shows its owner's faction
 crest.
 
-**Status:** Milestone 5 (core, Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo, Go Fish). Other games show as "Coming soon".
+**Status:** Milestone 6 (core, Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo, Go Fish, Crazy Eights). Other games show as "Coming soon".
 
 | Game | Players | Status |
 |---|---|---|
@@ -14,7 +14,7 @@ crest.
 | Deathroll | 2+ | ✅ |
 | Guild Bingo | any | ✅ |
 | Go Fish | 2–6 | ✅ |
-| Crazy Eights | 2–6 | planned |
+| Crazy Eights | 2–6 | ✅ |
 | Blackjack | 2–8 | planned |
 | Poker (chips) | 2–8 | planned |
 | Liar's Dice | 2–6 | planned |
@@ -76,6 +76,7 @@ GoblinGames_Connect6/
 GoblinGames_Deathroll/
 GoblinGames_Bingo/
 GoblinGames_GoFish/
+GoblinGames_CrazyEights/
 tools/art/               art generator, logo SVG, CurseForge logo
 tools/wowsim/            headless WoW simulator + tests
 docs/MODULE_API.md       how to write a game module
@@ -90,7 +91,7 @@ Copy (or symlink) `GoblinGames` and the `GoblinGames_*` game folders into
 then `/reload` after each change. Turn on `/gg debug` to see every message.
 
 Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua`,
-`test_connect6.lua`, `test_deathroll.lua`, `test_bingo.lua` and `test_gofish.lua` in the same folder.
+`test_connect6.lua`, `test_deathroll.lua`, `test_bingo.lua`, `test_gofish.lua` and `test_crazyeights.lua` in the same folder.
 
 To add a game, read [docs/MODULE_API.md](docs/MODULE_API.md).
 
