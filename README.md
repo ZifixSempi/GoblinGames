@@ -5,7 +5,7 @@ guild while you wait for queues, a raid to form, or guild night to start.
 Frames are themed Horde or Alliance, and every piece shows its owner's faction
 crest.
 
-**Status:** Milestone 8 (core, Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo, Go Fish, Crazy Eights, Blackjack, Poker). Other games show as "Coming soon".
+**Status:** Milestone 9 (everything but Trivia: Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo, Go Fish, Crazy Eights, Blackjack, Poker, Liar's Dice). Other games show as "Coming soon".
 
 | Game | Players | Status |
 |---|---|---|
@@ -17,7 +17,7 @@ crest.
 | Crazy Eights | 2–6 | ✅ |
 | Blackjack | 2–8 | ✅ |
 | Poker (chips) | 2–8 | ✅ |
-| Liar's Dice | 2–6 | planned |
+| Liar's Dice | 2–6 | ✅ |
 | Trivia | any | planned |
 
 ## Supported clients
@@ -58,6 +58,8 @@ never posts in chat on your behalf.
   window, following Blizzard's Terms of Use.
 - Card games: only the host's client shuffles and deals, and each player is
   whispered only their own cards. The host's client checks every move.
+- Liar's Dice has to keep dice secret, so the host's client rolls them and
+  whispers each player only their own (same trust level as the card games).
 - Dice games use real `/roll` results from the server. Group up so the host's
   client can see and verify every roll.
 - It honours Retail's addon-chat lockdown during boss encounters and Mythic+.
@@ -79,6 +81,7 @@ GoblinGames_GoFish/
 GoblinGames_CrazyEights/
 GoblinGames_Blackjack/
 GoblinGames_Poker/
+GoblinGames_LiarsDice/
 tools/art/               art generator, logo SVG, CurseForge logo
 tools/wowsim/            headless WoW simulator + tests
 docs/MODULE_API.md       how to write a game module
@@ -93,7 +96,7 @@ Copy (or symlink) `GoblinGames` and the `GoblinGames_*` game folders into
 then `/reload` after each change. Turn on `/gg debug` to see every message.
 
 Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua`,
-`test_connect6.lua`, `test_deathroll.lua`, `test_bingo.lua`, `test_gofish.lua`, `test_crazyeights.lua`, `test_blackjack.lua` and `test_poker.lua` in the same folder.
+`test_connect6.lua`, `test_deathroll.lua`, `test_bingo.lua`, `test_gofish.lua`, `test_crazyeights.lua`, `test_blackjack.lua`, `test_poker.lua` and `test_liarsdice.lua` in the same folder.
 
 To add a game, read [docs/MODULE_API.md](docs/MODULE_API.md).
 

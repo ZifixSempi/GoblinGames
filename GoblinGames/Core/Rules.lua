@@ -122,11 +122,15 @@ GG.RULES = {
 
     liarsdice = {
         title = "Liar's Dice",
-        intro = "Bid on hidden dice, or call LIAR!",
+        intro = "Bid on everyone's hidden dice, or call LIAR! Last goblin with dice wins.",
         sections = {
-            { "Bidding", "Everyone rolls hidden dice. Bid how many of a face are on the whole table; each bid must go higher." },
-            { "LIAR!", "Think the last bid is too high? Call Liar! Dice are revealed and the loser of the call loses a die." },
-            { "Winning", "Last player with dice left wins." },
+            { "Your cup", "Everyone has 5 dice (or 3 in a quick game). Each round they're rolled for you, and only you can see yours." },
+            { "Bidding", "Bids are about ALL the dice on the table, not just yours: \"there are at least four 5s\". Pick a number with - and +, pick a face, then press Bid. Each bid must go higher: more dice, or the same number of a higher face." },
+            { "Ones are wild", "Unless the host turned it off, every 1 counts as whatever face was bid, so nobody bids on ones." },
+            { "LIAR!", "Think the last bid is too high? Call LIAR! Everyone's dice are shown and counted. At least that many: the caller loses a die. Fewer: the bidder was lying and loses a die." },
+            { "Next round", "The loser starts the next round. Lose your last die and you're out. The last player with dice wins." },
+            { "Tips", "Your dice that match the current bid glow. On average, a third of the other dice match any face when ones are wild (a sixth when they aren't)." },
+            { "Out of time?", "The goblin makes the smallest possible bid for you." },
         },
     },
 

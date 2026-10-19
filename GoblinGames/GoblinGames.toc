@@ -41,6 +41,7 @@ Core\Cards.lua
 UI\Widgets.lua
 UI\Effects.lua
 UI\CardWidget.lua
+UI\DiceWidget.lua
 UI\MainWindow.lua
 UI\Mascot.lua
 UI\GamesPanel.lua

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Milestone 9: Liar's Dice
+
+- New game: **Liar's Dice** for 2-6. Everyone's dice are rolled under a cup; you only see your own. Bid on how many of a face are on the whole table, each bid higher than the last, or call **LIAR!**: every die is shown, and whoever was wrong loses a die. Last goblin with dice wins.
+  - Lobby options: 5 dice or 3 (quick game); ones wild (default) or not.
+  - Bid picker: - / + for the number and a row of dice for the face; it always starts on the smallest legal bid. Your dice that match the current bid glow.
+  - Opponents' cups show hidden "?" dice until a LIAR! call turns them all face up, with the matching ones glowing.
+  - Hidden dice are rolled by the host's client and whispered to each owner (they can't use /roll, which everyone can see).
+  - Out of time: the smallest legal bid is made for you. Leaving re-rolls the round without you.
+  - Practice against the Training Dummy, who does the maths before calling you a liar.
+- New art: dice (Media\Dice, our own), and `GG.UI.Die` for drawing them.
+
+
 ### Milestone 8: Poker
 
 - New game: **Poker** (no-limit Texas Hold'em) for 2-8 players with chips. Lobby options: starting chips (500, 1,000 or 2,000), game length (15 or 30 hands, or until one player is left), and an optional **gold buy-in** that only appears when the host has gold mode on.

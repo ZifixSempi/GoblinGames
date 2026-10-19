@@ -442,6 +442,39 @@ def make_cards():
     save_tga(suits, "Suits")
 
 
+def make_dice():
+    """Liar's Dice: a 4x2 sheet of 64px dice. Faces 1-6 are cells 1-6
+    (left to right, top row first); cell 7 is a hidden die (dark, with a
+    gold "?"); cell 8 is left empty. Ivory dice with dark pips, a red 1."""
+    sheet = Image.new("RGBA", (256, 128), (0, 0, 0, 0))
+    PIPS = {1: [(.5, .5)], 2: [(.27, .27), (.73, .73)], 3: [(.27, .27), (.5, .5), (.73, .73)],
+            4: [(.27, .27), (.73, .27), (.27, .73), (.73, .73)],
+            5: [(.27, .27), (.73, .27), (.5, .5), (.27, .73), (.73, .73)],
+            6: [(.27, .25), (.73, .25), (.27, .5), (.73, .5), (.27, .75), (.73, .75)]}
+    font = ImageFont.truetype(os.path.join(MEDIA, "LuckiestGuy-Regular.ttf"), 40)
+    for cell in range(7):
+        die = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        dd = ImageDraw.Draw(die)
+        # soft shadow, then the body
+        dd.rounded_rectangle([5, 7, 61, 63], radius=12, fill=(0, 0, 0, 90))
+        if cell < 6:
+            dd.rounded_rectangle([3, 3, 59, 59], radius=12, fill=(246, 236, 210, 255), outline=(92, 70, 44, 255), width=3)
+            dd.rounded_rectangle([8, 8, 54, 30], radius=8, fill=(255, 250, 236, 255))  # highlight
+            dd.rounded_rectangle([3, 3, 59, 59], radius=12, outline=(92, 70, 44, 255), width=3)
+            face = cell + 1
+            r = 7 if face == 1 else 5
+            col = (190, 30, 28, 255) if face == 1 else (40, 30, 24, 255)
+            for (px, py) in PIPS[face]:
+                cx, cy = 3 + px * 56, 3 + py * 56
+                dd.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col)
+        else:
+            dd.rounded_rectangle([3, 3, 59, 59], radius=12, fill=(96, 30, 24, 255), outline=(40, 12, 8, 255), width=3)
+            dd.rounded_rectangle([8, 8, 54, 54], radius=8, outline=(222, 176, 70, 255), width=2)
+            dd.text((32, 34), "?", font=font, fill=(240, 196, 90, 255), anchor="mm")
+        sheet.alpha_composite(die, ((cell % 4) * 64, (cell // 4) * 64))
+    save_tga(sheet, "Dice")
+
+
 if __name__ == "__main__":
     os.makedirs(MEDIA, exist_ok=True)
     make_logo()
@@ -458,4 +491,5 @@ if __name__ == "__main__":
     make_connect6()
     make_bingo()
     make_cards()
+    make_dice()
     print("Wrote textures to", MEDIA)

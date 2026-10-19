@@ -164,6 +164,7 @@ c:SetCard("QH"); c:SetBack(); c:SetSelected(true); c:SetDim(true); c.onClick = f
 local seat = GG.UI.CardSeat(parent)             -- an opponent: crest, name, card backs, score, badge
 seat:SetPlayer(session, name); seat:SetCount(5); seat:SetBadge("LAST CARD!"); seat:SetTurn(true)
 local pip = GG.UI.SuitIcon(parent, 40); pip:SetSuit("H")
+local die = GG.UI.Die(parent, 40); die:SetFace(5); die:SetFace(0) --[[ hidden ]]; die:SetGlow(true)
 ```
 
 Pattern for hidden information (see Go Fish): keep the real hands and deck in
