@@ -1,0 +1,16 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r - Blackjack
+## Notes: Blackjack for Goblin Games: the host deals, you play the house for chips. Hit, stand or double.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Coin_02
+## Category: Miscellaneous
+## Group: GoblinGames
+## X-Curse-Project-ID: 000000
+## LoadOnDemand: 1
+## Dependencies: GoblinGames
+
+# Loaded by the core the first time someone hosts, joins or practices
+# Blackjack (C_AddOns.LoadAddOn). Nothing here runs at login.
+
+Blackjack.lua

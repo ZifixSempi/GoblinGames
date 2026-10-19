@@ -79,6 +79,11 @@ arrive as `"1"` and `"0"`, and `nil` arrives as `""`. Local delivery (the host's
 own moves, practice games) uses the same rule, so code that works locally also
 works over the network.
 
+### Optional: who's actually playing
+
+`IsPlaying(session, name) -> bool`: return false for someone who runs the game
+but doesn't play it (the Blackjack dealer). They get no win/loss stat.
+
 ## 4. The session object
 
 | Field / method | Meaning |

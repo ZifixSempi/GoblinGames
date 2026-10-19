@@ -93,11 +93,15 @@ GG.RULES = {
 
     blackjack = {
         title = "Blackjack",
-        intro = "Beat the dealer's hand without going over 21.",
+        intro = "Beat the dealer without going over 21. Chips only: no gold.",
         sections = {
-            { "The deal", "The host is the dealer. Everyone gets two cards; the dealer shows one." },
-            { "Your turn", "Hit to take another card, or Stand to stop. Over 21 is a bust." },
-            { "Winning", "Closer to 21 than the dealer wins. An Ace counts as 1 or 11; face cards are 10." },
+            { "Who's who", "The host is the dealer and runs the table; everyone else plays against the house. In practice, the Training Dummy deals for you." },
+            { "Bets", "Each round, pick a bet with the chip buttons. When everyone has bet, the cards are dealt. (The dealer can press Deal now: anyone who hasn't bet gets the smallest bet.)" },
+            { "Card values", "2 to 10 are worth their number. Jack, Queen and King are 10. An Ace is 11, or 1 if 11 would take you over 21." },
+            { "Your turn", "Hit: take another card. Stand: stop here. Double: double your bet and take exactly one more card (only on your first two cards). Go over 21 and you bust: you lose your bet." },
+            { "The dealer", "After everyone is done, the dealer turns over the face-down card and must draw until 17 or more." },
+            { "Payouts", "Closer to 21 than the dealer (or the dealer busts): you win your bet. Same total: push, you keep your bet. Blackjack (21 with your first two cards) pays 3 to 2." },
+            { "Winning", "After the last round, the most chips wins. Run out of chips and you're out. Out of time on your turn? You stand." },
         },
     },
 

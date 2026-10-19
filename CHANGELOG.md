@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Milestone 7: Blackjack
+
+- New game: **Blackjack** for 2-8. The host is the dealer; everyone else plays the house with chips (100 or 500 to start, 3, 5 or 10 rounds: lobby options). Chips only, no gold.
+  - Bet with the chip buttons; the cards are dealt as soon as everyone has bet (or the dealer presses Deal now).
+  - Hit, Stand or Double (first two cards). The dealer reveals the hole card and draws to 17, one card at a time. Blackjack pays 3 to 2.
+  - Seats show each player's cards, total, chips, bet and WIN / LOSE / PUSH, with a coin shower when you win a hand.
+  - The hole card and the shoe never leave the host's client until the reveal.
+  - Out of time: players stand; a dealer who doesn't deal in time deals automatically. Leaving takes your seat out of the game.
+  - Practice: the Training Dummy deals and you play.
+- Core: a module can say who's really playing (`IsPlaying(session, name)`), so the Blackjack dealer gets no win or loss in their stats.
+
+
 ### Milestone 6: Crazy Eights
 
 - New game: **Crazy Eights** for 2-6 players, Uno-style. Cards that fit glow and pop up on your turn; click one to play it. Eights are wild and open a suit picker. Can't play? Draw a card (button or the draw pile), then play it or Pass.

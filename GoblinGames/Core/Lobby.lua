@@ -849,7 +849,9 @@ Lobby.coreStateOps["_END"] = function(s, args)
 
     local me = Util.PlayerName()
     local outcome
-    if result.draw then
+    if s.def and s.def.IsPlaying and not s.def.IsPlaying(s, me) then
+        outcome = nil -- e.g. the Blackjack dealer: ran the game, didn't play it
+    elseif result.draw then
         outcome = "draw"
     elseif Util.IndexOf(winners, me) then
         outcome = "win"
