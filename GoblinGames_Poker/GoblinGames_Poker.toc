@@ -1,0 +1,16 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r - Poker
+## Notes: Poker for Goblin Games: Texas Hold'em with chips, with an optional gold buy-in ledger.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Coin_17
+## Category: Miscellaneous
+## Group: GoblinGames
+## X-Curse-Project-ID: 000000
+## LoadOnDemand: 1
+## Dependencies: GoblinGames
+
+# Loaded by the core the first time someone hosts, joins or practices
+# Poker (C_AddOns.LoadAddOn). Nothing here runs at login.
+
+Poker.lua

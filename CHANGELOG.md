@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Milestone 8: Poker
+
+- New game: **Poker** (no-limit Texas Hold'em) for 2-8 players with chips. Lobby options: starting chips (500, 1,000 or 2,000), game length (15 or 30 hands, or until one player is left), and an optional **gold buy-in** that only appears when the host has gold mode on.
+  - Blinds rotate with the dealer button (heads-up: the button is the small blind). Fold, Check, Call, Bet / Raise (with -, +, 1/2 Pot and Pot to size it) and All-in.
+  - Real side pots for all-ins, split pots for ties, and the board runs out automatically when everyone is all-in.
+  - Your best hand is shown under your cards ("You have: Three Kings"). At a showdown, the hands still in are revealed on everyone's seats.
+  - Only the host shuffles; each player is whispered only their own two cards.
+  - Gold buy-in is ledger-only: when the game ends, the losers owe the winner(s) the buy-in, settled by hand in the trade window.
+  - Out of time: check if you can, otherwise fold. Leaving folds your hand.
+  - Practice against the Training Dummy, who plays a simple but honest game.
+
+
 ### Milestone 7: Blackjack
 
 - New game: **Blackjack** for 2-8. The host is the dealer; everyone else plays the house with chips (100 or 500 to start, 3, 5 or 10 rounds: lobby options). Chips only, no gold.

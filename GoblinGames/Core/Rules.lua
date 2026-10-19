@@ -107,11 +107,16 @@ GG.RULES = {
 
     poker = {
         title = "Poker (Texas Hold'em)",
-        intro = "Make the best five-card hand from your two cards and five shared cards.",
+        intro = "Make the best five-card hand from your two cards and the five shared cards.",
         sections = {
-            { "Chips", "Everyone plays with chips. Gold mode only keeps a ledger; the addon never moves gold." },
-            { "Rounds", "Bet after your two cards, after the flop (3 shared cards), after the turn (4th) and after the river (5th)." },
-            { "Winning", "Best hand at the showdown, or the last player who hasn't folded, takes the pot." },
+            { "The deal", "Everyone gets two face-down cards only they can see. The two players after the dealer button (D) put in the small and big blinds (SB, BB) to get things going." },
+            { "Betting rounds", "There are four: after your two cards, after the Flop (3 shared cards), the Turn (a 4th) and the River (a 5th). The glowing seat is the one whose turn it is." },
+            { "Your options", "Fold: give up this hand. Check: pass, when nobody has bet. Call: match the bet. Bet / Raise: put in more (use - and + or the 1/2 Pot and Pot buttons to pick how much). All-in: everything you have." },
+            { "Winning a hand", "If everyone else folds, you take the pot. Otherwise the best hand at the showdown wins it. All-in players can only win what they matched; the rest is a side pot." },
+            { "Hands, best to worst", "Straight Flush, Four of a Kind, Full House, Flush, Straight, Three of a Kind, Two Pair, Pair, High Card. Your best hand is shown under your cards." },
+            { "Winning the game", "Run out of chips and you're out. The game ends when one player has every chip, or after the hand limit (then most chips wins)." },
+            { "Gold buy-in", "Only if the host turned on gold mode: losers owe the winner the buy-in. It's a ledger only; the addon never moves gold, you trade it yourselves. Play by Blizzard's Terms of Use." },
+            { "Out of time?", "You check if you can; otherwise you fold." },
         },
     },
 
