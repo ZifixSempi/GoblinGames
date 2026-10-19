@@ -149,6 +149,12 @@ local function BuildWindow()
     close:SetFrameLevel(border:GetFrameLevel() + 6)
     close:SetScript("OnClick", function() frame:Hide() end)
 
+    -- "?" right next to the close button: rules for whatever you're doing.
+    local help = UI.Button(frame, "?", 30, 30, function() UI:ShowRules(UI:ContextGame()) end, "wood")
+    help:SetPoint("RIGHT", close, "LEFT", -4, 0)
+    help:SetFrameLevel(border:GetFrameLevel() + 6)
+    help.tooltip = "How to play"
+
     local function PaintTitle()
         local c = GG.Theme:GetPalette().title
         title:SetText("|c" .. c .. "Goblin|r Games")

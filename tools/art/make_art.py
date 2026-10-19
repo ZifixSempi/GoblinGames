@@ -24,7 +24,7 @@ import random
 import re
 
 import cairosvg
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MEDIA = os.path.join(ROOT, "GoblinGames", "Media")
@@ -399,6 +399,49 @@ def make_bingo():
     save_tga(face, "BallFace")
 
 
+def make_cards():
+    """Playing cards (original art).
+    CardFace / CardBack: a 128x183 card drawn in the top of a 128x256
+    texture (WoW wants power-of-two sizes; the game crops it with
+    SetTexCoord(0, 1, 0, 183/256)). Suits: four suit symbols in a row,
+    already coloured (black spades/clubs, red hearts/diamonds)."""
+    W, H = 128, 183
+
+    face = Image.new("RGBA", (128, 256), (0, 0, 0, 0))
+    d = ImageDraw.Draw(face)
+    d.rounded_rectangle([1, 1, W - 2, H - 2], radius=12, fill=(253, 250, 240, 255), outline=(70, 60, 50, 255), width=3)
+    d.rounded_rectangle([6, 6, W - 7, H - 7], radius=9, outline=(225, 215, 195, 255), width=1)
+    save_tga(face, "CardFace")
+
+    back = Image.new("RGBA", (128, 256), (0, 0, 0, 0))
+    card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    cd = ImageDraw.Draw(card)
+    cd.rounded_rectangle([1, 1, W - 2, H - 2], radius=12, fill=(120, 26, 22, 255), outline=(40, 10, 8, 255), width=3)
+    # gold inner frame and a lattice of little diamonds
+    cd.rounded_rectangle([8, 8, W - 9, H - 9], radius=8, outline=(222, 176, 70, 255), width=3)
+    for yy in range(18, H - 14, 14):
+        for xx in range(18, W - 14, 14):
+            off = 7 if (yy // 14) % 2 else 0
+            x = xx + off
+            if x < W - 16:
+                cd.polygon([(x, yy - 4), (x + 4, yy), (x, yy + 4), (x - 4, yy)], fill=(160, 44, 34, 255))
+    # goblin badge in the middle
+    head = Image.open(os.path.join(MEDIA, "GoblinFace.tga")).convert("RGBA").resize((70, 70), Image.LANCZOS)
+    cd.ellipse([W / 2 - 40, H / 2 - 40, W / 2 + 40, H / 2 + 40], fill=(60, 14, 10, 255), outline=(222, 176, 70, 255), width=4)
+    card.alpha_composite(head, (int(W / 2 - 35), int(H / 2 - 37)))
+    back.paste(card, (0, 0))
+    save_tga(back, "CardBack")
+
+    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    suits = Image.new("RGBA", (256, 64), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(suits)
+    font = ImageFont.truetype(font_path, 58)
+    for i, (glyph, col) in enumerate([("\u2660", (28, 28, 36)), ("\u2665", (205, 30, 34)),
+                                      ("\u2666", (205, 30, 34)), ("\u2663", (28, 28, 36))]):
+        sd.text((i * 64 + 32, 34), glyph, font=font, fill=col + (255,), anchor="mm")
+    save_tga(suits, "Suits")
+
+
 if __name__ == "__main__":
     os.makedirs(MEDIA, exist_ok=True)
     make_logo()
@@ -414,4 +457,5 @@ if __name__ == "__main__":
     make_slot()
     make_connect6()
     make_bingo()
+    make_cards()
     print("Wrote textures to", MEDIA)

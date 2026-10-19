@@ -1,0 +1,16 @@
+## Interface: 120105, 50504, 38002, 20506, 11509
+## Title: |cff6fdc4fGoblin|r|cffd4af37Games|r - Go Fish
+## Notes: Go Fish for Goblin Games: ask for cards, fish from the pond, collect books.
+## Author: Zifix
+## Version: @project-version@
+## IconTexture: Interface\Icons\INV_Misc_Fish_02
+## Category: Miscellaneous
+## Group: GoblinGames
+## X-Curse-Project-ID: 000000
+## LoadOnDemand: 1
+## Dependencies: GoblinGames
+
+# Loaded by the core the first time someone hosts, joins or practices
+# Go Fish (C_AddOns.LoadAddOn). Nothing here runs at login.
+
+GoFish.lua

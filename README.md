@@ -5,7 +5,7 @@ guild while you wait for queues, a raid to form, or guild night to start.
 Frames are themed Horde or Alliance, and every piece shows its owner's faction
 crest.
 
-**Status:** Milestone 4 (core, Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo). Other games show as "Coming soon".
+**Status:** Milestone 5 (core, Tic-Tac-Toe, Connect 6, Deathroll, Guild Bingo, Go Fish). Other games show as "Coming soon".
 
 | Game | Players | Status |
 |---|---|---|
@@ -13,7 +13,7 @@ crest.
 | Connect 6 | 2 | ✅ |
 | Deathroll | 2+ | ✅ |
 | Guild Bingo | any | ✅ |
-| Go Fish | 2–6 | planned |
+| Go Fish | 2–6 | ✅ |
 | Crazy Eights | 2–6 | planned |
 | Blackjack | 2–8 | planned |
 | Poker (chips) | 2–8 | planned |
@@ -31,6 +31,9 @@ Titan Reforged, Burning Crusade Anniversary and Classic Era.
 - **Practice** plays a Training Dummy offline: a good way to try a game alone.
 - **Host** opens a lobby. Invite group members, your target, or anyone by name.
   Players without the addon are flagged as "No addon / offline".
+- **How to play**: every game card and lobby has a *How to play* button, and the
+  **?** in the window's top corner shows the rules for whatever you're doing.
+  `/gg rules fish` works too.
 - `/gg help` lists every command.
 
 **Guild Bingo nights:** an officer opens Guild Bingo and presses *Announce to
@@ -53,6 +56,8 @@ never posts in chat on your behalf.
   (Deathroll now, Poker later) only keeps a ledger of who owes whom. It's
   optional, off by default, and players settle up themselves in the trade
   window, following Blizzard's Terms of Use.
+- Card games: only the host's client shuffles and deals, and each player is
+  whispered only their own cards. The host's client checks every move.
 - Dice games use real `/roll` results from the server. Group up so the host's
   client can see and verify every roll.
 - It honours Retail's addon-chat lockdown during boss encounters and Mythic+.
@@ -70,6 +75,7 @@ GoblinGames_TicTacToe/   game modules (Load-On-Demand)
 GoblinGames_Connect6/
 GoblinGames_Deathroll/
 GoblinGames_Bingo/
+GoblinGames_GoFish/
 tools/art/               art generator, logo SVG, CurseForge logo
 tools/wowsim/            headless WoW simulator + tests
 docs/MODULE_API.md       how to write a game module
@@ -84,7 +90,7 @@ Copy (or symlink) `GoblinGames` and the `GoblinGames_*` game folders into
 then `/reload` after each change. Turn on `/gg debug` to see every message.
 
 Tests (needs Lua 5.1): `lua5.1 tools/wowsim/test_tictactoe.lua`,
-`test_connect6.lua`, `test_deathroll.lua` and `test_bingo.lua` in the same folder.
+`test_connect6.lua`, `test_deathroll.lua`, `test_bingo.lua` and `test_gofish.lua` in the same folder.
 
 To add a game, read [docs/MODULE_API.md](docs/MODULE_API.md).
 

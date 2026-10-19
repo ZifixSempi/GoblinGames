@@ -38,6 +38,11 @@ UI:RegisterPanel("lobby", nil, function(container)
 
     local ribbon = UI.Ribbon(panel, "", 420, 64)
     ribbon:SetPoint("TOP", 0, 6)
+    local rulesButton = UI.Button(panel, "How to play", 110, 26, function()
+        if GG.Lobby.active then UI:ShowRules(GG.Lobby.active.gameId) end
+    end, "wood")
+    rulesButton:SetPoint("TOPRIGHT", 0, -4)
+
     local sub = UI.Text(panel, "", { font = "GameFontHighlight", justify = "CENTER" })
     sub:SetPoint("TOP", ribbon, "BOTTOM", 0, 2)
     sub:SetTextColor(1, 0.92, 0.7)

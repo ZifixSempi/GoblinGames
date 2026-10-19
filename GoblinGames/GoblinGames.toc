@@ -35,9 +35,12 @@ Core\Lobby.lua
 Core\Turns.lua
 Core\Dice.lua
 Core\Ledger.lua
+Core\Rules.lua
+Core\Cards.lua
 
 UI\Widgets.lua
 UI\Effects.lua
+UI\CardWidget.lua
 UI\MainWindow.lua
 UI\Mascot.lua
 UI\GamesPanel.lua
@@ -46,6 +49,7 @@ UI\GamePanel.lua
 UI\StatsPanel.lua
 UI\SettingsPanel.lua
 UI\InvitePopup.lua
+UI\HowToPlay.lua
 UI\Minimap.lua
 
 Slash.lua

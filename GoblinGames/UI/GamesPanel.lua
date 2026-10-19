@@ -12,7 +12,7 @@ local UI = GG.UI
 
 local CARD_W, CARD_H, GAP = 340, 150, 12
 
-local SAY = "Pick a game! |cff1f7a12Play with friends|r invites your group or guild. |cff1f7a12Practice|r is just you vs. the Training Dummy."
+local SAY = "Pick a game! |cff1f7a12Play with friends|r invites people, |cff1f7a12Practice|r is just you. New here? Press |cff1f7a12How to play|r."
 
 local function Report(ok, err)
     if not ok and err then GG:Print(err); UI:Say(err, true) end
@@ -31,7 +31,7 @@ local function BuildCard(parent, entry)
     local coin = UI.CoinIcon(card, 70, entry.icon)
     coin:SetPoint("TOPLEFT", 12, -12)
 
-    local name = UI.Text(card, entry.name, { fancy = true, size = 22, ink = true })
+    local name = UI.Text(card, entry.name, { fancy = true, size = 20, ink = true })
     name:SetPoint("TOPLEFT", coin, "TOPRIGHT", 10, -4)
 
     local players = UI.Text(card, PlayerText(entry), { ink = true, font = "GameFontNormalSmall" })
@@ -55,6 +55,9 @@ local function BuildCard(parent, entry)
         practice.tooltip = "Play the Training Dummy. Just you, no invites, doesn't count toward stats."
     end
     play.tooltip = "Open a lobby and invite people. The game starts once enough of them accept."
+
+    local rules = UI.Button(card, "How to play", 96, 22, function() UI:ShowRules(entry.id) end, "wood")
+    rules:SetPoint("TOPRIGHT", -12, -12)
     return card
 end
 

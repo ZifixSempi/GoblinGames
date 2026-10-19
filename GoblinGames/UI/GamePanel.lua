@@ -72,7 +72,7 @@ local function Say(s)
     elseif GG.Turns:IsMyTurn(s) then
         UI:Say("Your turn! " .. (s.def and s.def.hint or ""))
     elseif GG.Turns:Current(s) then
-        UI:Say("Waiting on " .. Util.ShortName(GG.Turns:Current(s)) .. "... *taps foot*")
+        UI:Say("Waiting on " .. Util.ShortName(GG.Turns:Current(s)) .. "... *taps foot*  (Rules? Press the |cff1f7a12?|r up top.)")
     end
 end
 

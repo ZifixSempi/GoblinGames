@@ -29,7 +29,7 @@ GG.CATALOG = {
     { id = "bingo",       addon = "GoblinGames_Bingo",       name = "Guild Bingo",   min = 2, max = 1000, practice = true,
       open = true, officerHost = true,
       icon = "Interface\\Icons\\INV_Misc_Ticket_Darkmoon_01", desc = "Officer-hosted prize nights." },
-    { id = "gofish",      addon = "GoblinGames_GoFish",      name = "Go Fish",       min = 2, max = 6,
+    { id = "gofish",      addon = "GoblinGames_GoFish",      name = "Go Fish",       min = 2, max = 6, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Fish_02",       desc = "Collect sets of four." },
     { id = "crazyeights", addon = "GoblinGames_CrazyEights", name = "Crazy Eights",  min = 2, max = 6,
       icon = "Interface\\Icons\\INV_Misc_Note_01", desc = "Match suit or rank. Eights are wild." },

@@ -306,6 +306,12 @@ do
     alice.env.GoblinGames.UI:ShowPanel("games")
     alice.env.GoblinGames.UI:ShowPanel("lobby")
     alice.env.GoblinGames.UI:ShowPanel("game")
+    for _, id in ipairs({ "general", "tictactoe", "connect6", "deathroll", "bingo", "gofish", "crazyeights", "blackjack", "poker", "liarsdice", "trivia" }) do
+        alice.env.GoblinGames.UI:ShowRules(id)
+    end
+    alice.env.SlashCmdList.GOBLINGAMES("rules ttt")
+    alice.env.SlashCmdList.GOBLINGAMES("rules")
+    check(alice.env.GoblinGames.RULES.tictactoe and select(2, alice.env.GoblinGames:RulesText("gofish")):find("Go Fish") ~= nil, "rules exist for the games")
     alice.env.GoblinGames:SetSetting("theme", "Alliance")
     check(alice.env.GoblinGames.Theme:GetThemeFaction() == "Alliance", "theme can be forced")
     NoErrors(alice, bob)

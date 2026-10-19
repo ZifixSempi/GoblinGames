@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Milestone 5: Card engine, Go Fish and How to play
+
+- New game: **Go Fish** for 2-6 players. Click a card, click a player, press Ask. Books of four are laid down automatically, the pond is shown in the middle with a running log of who asked whom, and the most books wins (ties share).
+  - Hidden hands: only the host shuffles and deals, each player is whispered only their own hand, and the host checks every ask.
+  - Running out of time makes a random ask for you. Leaving puts your cards back in the pond and the game carries on.
+  - Practice against the Training Dummy, who likes to ask for what it has most of.
+- **How to play** everywhere: a "?" in the window's corner (rules for the game you're in), a "How to play" button on every game card and in the lobby, and `/gg rules <game>`.
+- Core: the shared card engine (`GG.Cards`: decks, shuffling, dealing, hidden hands) and a playing-card widget (`GG.UI.PlayingCard`) with our own card art, ready for Crazy Eights, Blackjack and Poker.
+
+
 ### Milestone 4: Guild Bingo
 
 - New game: **Guild Bingo**, for officer-hosted prize nights.

@@ -137,8 +137,32 @@ GG.UI:Say("text")                   -- make the goblin say something
 GG.UI.MEDIA .. "Slot"               -- our own textures: Slot, Ring, Coin, Parchment ...
 ```
 
+Give your game a rule sheet in `Core/Rules.lua` (`GG.RULES[id] = { title,
+intro, sections = { { "Heading", "Text" } } }`). The "How to play" buttons and
+`/gg rules <id>` show it; `GG.UI:ShowRules(id)` opens it from code.
+
 Add a game's entry to `GG.CATALOG` with `practice = true` when the module has a
 `BotAction`, so the Practice button appears.
+
+## 6b. Cards (hidden hands)
+
+```lua
+local Cards = GG.Cards       -- cards are 2-char strings: "AS", "TH" (T = ten), "QC"
+local deck = Cards.Shuffle(Cards.NewDeck())     -- host only; NewDeck(2) = two decks
+local hand = Cards.Draw(deck, 7)                -- off the top
+Cards.Sort(hand); Cards.TakeRank(hand, "7"); Cards.CountRank(hand, "7"); Cards.Contains(hand, "AS")
+Cards.Name("QH")  -- "Queen of Hearts"        Cards.RankPlural("7") -- "Sevens"
+Cards.SendHand(session, player, hand)           -- whispers "HAND" to that player only
+
+local c = GG.UI.PlayingCard(parent, 64)         -- a card on screen (height = 1.43 x width)
+c:SetCard("QH"); c:SetBack(); c:SetSelected(true); c:SetDim(true); c.onClick = function(card) end
+```
+
+Pattern for hidden information (see Go Fish): keep the real hands and deck in
+host-only fields (`d.hands`, `d.pond`), whisper each hand with
+`Cards.SendHand`, broadcast only public numbers (card counts, deck size), and
+re-send both in `OnSyncRequest`. Validate every action against the host's
+hands, never against what the client claims.
 
 ## 7. Dice and gold
 

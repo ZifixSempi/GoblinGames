@@ -12,6 +12,7 @@
     /gg leave               leave your lobby or forfeit the current game
     /gg accept | decline    answer the newest invite
     /gg who                 list group and guild members who have GoblinGames
+    /gg rules <game>        how to play (any game)
     /gg stats | settings    open those panels
     /gg debug               print every addon message sent and received
 ------------------------------------------------------------------------------]]
@@ -21,7 +22,8 @@ local _, GG = ...
 local Util = GG.Util
 
 -- Accept "tictactoe", "TicTacToe", "tic-tac-toe" or "ttt" for the same game.
-local ALIASES = { ttt = "tictactoe", c6 = "connect6", dr = "deathroll", ld = "liarsdice", c8 = "crazyeights", bj = "blackjack" }
+local ALIASES = { ttt = "tictactoe", c6 = "connect6", dr = "deathroll", ld = "liarsdice", c8 = "crazyeights",
+    bj = "blackjack", fish = "gofish", guildbingo = "bingo" }
 
 local function FindGame(text)
     if not text or text == "" then return nil end
@@ -55,6 +57,7 @@ local function Help()
         "/gg start - start your lobby   /gg leave - leave or forfeit",
         "/gg accept | decline - answer the newest invite",
         "/gg who - who in your group or guild has GoblinGames",
+        "/gg rules <game> - how to play",
         "/gg stats | settings | debug",
     }
     for _, line in ipairs(lines) do DEFAULT_CHAT_FRAME:AddMessage("   " .. line) end
@@ -137,6 +140,11 @@ commands.who = function()
     end)
 end
 
+commands.rules = function(arg)
+    local id = FindGame(arg) or GG.UI:ContextGame()
+    GG.UI:ShowRules(id)
+end
+commands.howto = commands.rules
 commands.stats = function() GG.UI:ShowPanel("stats") end
 commands.settings = function() GG.UI:ShowPanel("settings") end
 commands.config = commands.settings
