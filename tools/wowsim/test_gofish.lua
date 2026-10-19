@@ -86,8 +86,8 @@ local T = A:GetGame("gofish")._test
 do
     check(s.status == "playing", "game started")
     check(#d.hands[AN] + #d.hands[BN] + #d.hands[EN] + #d.pond
-        + 4 * (#(d.hostBooks[AN] or {}) + #(d.hostBooks[BN] or {}) + #(d.hostBooks[EN] or {})) == 52,
-        "every card is somewhere (hands + pond + books = 52)")
+        == 52, "every card is somewhere (hands + pond = 52)")
+    check(next(d.hostPairs) == nil, "no pairs are laid down for you at the deal")
     check(#d.pond == 52 - 21, "3 players get 7 cards each")
     local bs, es = B.Lobby.active, E.Lobby.active
     check(bs.data.hands == nil and bs.data.pond == nil, "Bob's client has no copy of anyone's hand or the pond")
@@ -144,7 +144,7 @@ do
     d.hands[BN] = { "7D", "KC", "KD" }
     d.hands[EN] = { "3S", "4S" }
     d.pond = { "5C", "6C", "9H" } -- top of the pond is the END ("9H" first)
-    d.hostBooks = {}
+    d.hostPairs = {}
     s.turn.current = AN
 
     -- Invalid asks are ignored.
@@ -179,19 +179,42 @@ do
     NoErrors(alice, bob, eve)
 end
 
-print("\n== Books")
+print("\n== Pairs: click to lay them down and score")
 do
+    local bs, es = B.Lobby.active, E.Lobby.active
     d.hands[AN] = { "QS", "QH", "QD", "3C" }
-    d.hands[BN] = { "QC", "8D" }
-    d.hands[EN] = { "3H" }
-    d.pond = { "4H", "4D" }
-    s.turn.current = AN
-    T.Ask(s, AN, BN, "Q")
+    d.hands[BN] = { "8D", "8S", "QC" }
+    d.hands[EN] = { "3H", "5C" }
+    d.pond = { "4H", "4D", "KS" }
+    d.hostPairs = {}
+    s.turn.current = BN
+
+    check(T.LayPair(s, AN, "Q"), "Alice lays down a pair of Queens (even on Bob's turn)")
     Sim.Advance(0.5)
-    check(#d.hostBooks[AN] == 1 and d.hostBooks[AN][1] == "Q", "four queens make a book")
-    check(A.Cards.CountRank(d.hands[AN], "Q") == 0, "the book left Alice's hand")
-    local es = E.Lobby.active
-    check(es.data.books[AN] and es.data.books[AN][1] == "Q", "Eve sees Alice's book")
+    check(#d.hostPairs[AN] == 1 and d.hostPairs[AN][1] == "Q", "Alice scored 1 pair")
+    check(A.Cards.CountRank(d.hands[AN], "Q") == 1 and #d.hands[AN] == 2, "two Queens left her hand, one stays")
+    check(es.data.pairs[AN] and #es.data.pairs[AN] == 1 and es.data.counts[AN] == 2, "Eve sees Alice's pair and smaller hand")
+    check(not T.LayPair(s, AN, "Q"), "one Queen isn't a pair")
+    check(not T.LayPair(s, AN, "K"), "can't lay a pair you don't have")
+
+    -- Bob claims a pair of Queens he doesn't have, over the network.
+    bs:SendAction("PAIR", "Q")
+    Sim.Advance(0.5)
+    check(#(d.hostPairs[BN] or {}) == 0, "the host rejects a fake pair")
+
+    -- Bob clicks one of his eights in his own window.
+    bs.data.myHand = { "8D", "8S", "QC" } -- what his client was shown
+    B:GetGame("gofish")._test.CardClick({ card = "8S" })
+    Sim.Advance(0.5)
+    check(#(d.hostPairs[BN] or {}) == 1 and d.hostPairs[BN][1] == "8", "Bob clicked his pair of 8s and scored")
+    check(#bs.data.myHand == 1 and bs.data.myHand[1] == "QC", "the 8s vanished from Bob's hand")
+    check(Cur() == BN, "still Bob's turn: he has a card left to ask with")
+
+    -- Laying down your last cards on your own turn: draw one and keep going.
+    d.hands[BN] = { "5S", "5H" }
+    T.LayPair(s, BN, "5")
+    Sim.Advance(0.5)
+    check(#d.hands[BN] == 1 and Cur() == BN, "Bob emptied his hand, drew from the pond, and still asks")
     NoErrors(alice, bob, eve)
 end
 
@@ -225,6 +248,13 @@ do
     A:GetGame("gofish").OnTurnTimeout(s, BN)
     Sim.Advance(0.5)
     check(#d.hands[BN] ~= 2 or #d.hands[AN] ~= 2 or #d.hands[EN] ~= 1 or #d.pond ~= 3, "a random ask was made for Bob")
+
+    d.hands[BN] = { "6S", "6H", "9D" }
+    d.hostPairs[BN] = {}
+    s.turn.current = BN
+    A:GetGame("gofish").OnTurnTimeout(s, BN)
+    Sim.Advance(0.5)
+    check(#d.hostPairs[BN] == 1 and d.hostPairs[BN][1] == "6", "a timeout lays down your pairs for you")
     NoErrors(alice, bob, eve)
 end
 
@@ -266,17 +296,18 @@ do
         Sim.Advance(0.3)
     end
     check(s.status ~= "playing", "the game finished (" .. guard .. " asks)")
-    local total = #(d.hostBooks[AN] or {}) + #(d.hostBooks[BN] or {}) + #(d.hostBooks[EN] or {})
-    check(total == 13, "all 13 books were made (" .. total .. ")")
+    local total = #(d.hostPairs[AN] or {}) + #(d.hostPairs[BN] or {})
+    check(total == 26, "all 26 pairs were made (" .. total .. ")")
+    check(#d.hands[AN] == 0 and #d.hands[BN] == 0 and #d.pond == 0, "no cards left anywhere")
     local bs = B.Lobby.active
     Sim.Advance(30) -- let the message throttle catch up
     bs = B.Lobby.active
     check(bs and bs.status == "ended", "Bob saw the game end (" .. tostring(bs and bs.status) .. ")")
     local result = s.result or {}
-    local a, b = #(d.hostBooks[AN] or {}), #(d.hostBooks[BN] or {})
-    if a > b then check(result.outcome == "win", "Alice has more books and won")
-    elseif b > a then check(result.outcome == "loss", "Bob has more books and won")
-    else check(result.outcome == "draw", "equal books: a draw") end
+    local a, b = #(d.hostPairs[AN] or {}), #(d.hostPairs[BN] or {})
+    if a > b then check(result.outcome == "win", "Alice has more pairs and won")
+    elseif b > a then check(result.outcome == "loss", "Bob has more pairs and won")
+    else check(result.outcome == "draw", "equal pairs: a draw") end
     NoErrors(alice, bob, eve)
     A.Lobby:Close(s); B.Lobby:Close(bs)
     if E.Lobby.active then E.Lobby:Close(E.Lobby.active) end
@@ -295,7 +326,8 @@ do
     while p.status == "playing" and guard < 600 do
         guard = guard + 1
         if B.Turns:IsMyTurn(p) then
-            -- Click a card, then Ask (one opponent is picked automatically).
+            -- Click a card (a pair gets laid down), then Ask (one opponent is
+            -- picked automatically).
             local hand = pd.myHand
             BT.CardClick({ card = hand[math.random(#hand)] })
             BT.DoAsk()
@@ -303,6 +335,9 @@ do
         Sim.Advance(1)
     end
     check(p.status == "ended", "practice game finished (" .. guard .. " steps)")
+    local sum = 0
+    for _, list in pairs(pd.hostPairs) do sum = sum + #list end
+    check(sum == 26, "every card ended up in a pair (" .. sum .. ")")
     check(bob.sent == sent, "practice sends nothing over the network")
     NoErrors(bob)
 end

@@ -66,14 +66,14 @@ GG.RULES = {
 
     gofish = {
         title = "Go Fish",
-        intro = "Collect books: all four cards of the same rank.",
+        intro = "Make pairs! Every pair you lay down is worth 1 point.",
         sections = {
+            { "Pairs", "Two cards of the same rank (two 7s, two Kings...) are a pair. Pairs in your hand glow green: click one and the pair is laid down and you score a point. You can do this any time, even on someone else's turn." },
             { "Your turn", "Click a card in your hand to pick a rank (you must hold at least one), click an opponent, then press Ask." },
             { "Got any?", "If they have that rank, they hand over every one of them and you go again. If not: Go Fish! You draw from the pond. Draw the rank you asked for and you go again; otherwise the turn passes." },
-            { "Books", "Four of a kind is a book. It's laid down automatically and scores a point." },
-            { "Empty hands", "Run out of cards and you draw one from the pond. When the pond is empty too, you sit out until the end. If nobody else has cards to ask, you just draw one and pass." },
-            { "Tips", "With only one opponent they're picked for you. Hover over a player to see their books. Run out of time and the goblin asks for you, at random!" },
-            { "Winning", "When all 13 books are made, whoever has the most books wins. Ties share the win." },
+            { "Empty hands", "Run out of cards and you draw one from the pond at the start of your turn. If nobody else has cards to ask, you just draw one and pass." },
+            { "Winning", "When the pond is empty and no more pairs can be made by asking, the game ends. Pairs still in anyone's hand are laid down for them, and whoever has the most pairs wins. Ties share the win." },
+            { "Tips", "With only one opponent they're picked for you. Hover over a player to see their pairs. Run out of time and the goblin lays your pairs and asks for you, at random!" },
         },
     },
 

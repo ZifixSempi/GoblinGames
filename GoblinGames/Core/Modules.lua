@@ -30,7 +30,7 @@ GG.CATALOG = {
       open = true, officerHost = true,
       icon = "Interface\\Icons\\INV_Misc_Ticket_Darkmoon_01", desc = "Officer-hosted prize nights." },
     { id = "gofish",      addon = "GoblinGames_GoFish",      name = "Go Fish",       min = 2, max = 6, practice = true,
-      icon = "Interface\\Icons\\INV_Misc_Fish_02",       desc = "Collect sets of four." },
+      icon = "Interface\\Icons\\INV_Misc_Fish_02",       desc = "Ask for cards, make pairs, score points." },
     { id = "crazyeights", addon = "GoblinGames_CrazyEights", name = "Crazy Eights",  min = 2, max = 6,
       icon = "Interface\\Icons\\INV_Misc_Note_01", desc = "Match suit or rank. Eights are wild." },
     { id = "blackjack",   addon = "GoblinGames_Blackjack",   name = "Blackjack",     min = 2, max = 8,
