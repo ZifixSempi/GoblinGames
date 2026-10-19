@@ -13,6 +13,7 @@
     /gg accept | decline    answer the newest invite
     /gg who                 list group and guild members who have GoblinGames
     /gg rules <game>        how to play (any game)
+    /gg questions           edit your own Trivia questions
     /gg stats | settings    open those panels
     /gg debug               print every addon message sent and received
 ------------------------------------------------------------------------------]]
@@ -145,6 +146,11 @@ commands.rules = function(arg)
     GG.UI:ShowRules(id)
 end
 commands.howto = commands.rules
+commands.questions = function()
+    local def, err = GG:LoadGame("trivia")
+    if not def then return GG:Print(err or "Trivia isn't installed.") end
+    def.OpenEditor()
+end
 commands.stats = function() GG.UI:ShowPanel("stats") end
 commands.settings = function() GG.UI:ShowPanel("settings") end
 commands.config = commands.settings

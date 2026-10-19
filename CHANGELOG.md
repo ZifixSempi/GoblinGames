@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Milestone 10: Trivia (all 10 games done!)
+
+- New game: **Trivia** for 2-40: a World of Warcraft quiz with 101 built-in questions about lore, places and the game itself.
+  - Four answers per question and a burning fuse. The fastest right answer scores 3, the second 2, every other right answer 1.
+  - After each question the right answer lights up green and the scoreboard shows who got it (and who's already answered, while the clock runs).
+  - Lobby options: 5, 10 or 20 questions; 10, 15 or 20 seconds; a topic; built-in and/or your own questions; whether the host answers too (off by default, since the host's client knows the answers).
+  - An open game like Guild Bingo: announce it to the guild, and latecomers can join between questions.
+  - **Your own questions**: `/gg questions` or *Edit questions* in the lobby. Saved with your account.
+  - Practice against the Training Dummy, who answers within a few seconds and is right about 60% of the time.
+- Core: game modules can add a host-only tool button to their lobby (`lobbyTool`).
+
+
 ### Milestone 9: Liar's Dice
 
 - New game: **Liar's Dice** for 2-6. Everyone's dice are rolled under a cup; you only see your own. Bid on how many of a face are on the whole table, each bid higher than the last, or call **LIAR!**: every die is shown, and whoever was wrong loses a die. Last goblin with dice wins.

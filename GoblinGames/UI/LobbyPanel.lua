@@ -43,6 +43,16 @@ UI:RegisterPanel("lobby", nil, function(container)
     end, "wood")
     rulesButton:SetPoint("TOPRIGHT", 0, -4)
 
+    -- A game can add one tool button for the host, e.g. Trivia's question
+    -- editor: def.lobbyTool = { label = "...", onClick = function() end }.
+    local toolButton = UI.Button(panel, "", 130, 26, function()
+        local s = GG.Lobby.active
+        local tool = s and s.def and s.def.lobbyTool
+        if tool then GG:Safe("Lobby tool", tool.onClick, s) end
+    end, "wood")
+    toolButton:SetPoint("TOPRIGHT", rulesButton, "BOTTOMRIGHT", 0, -4)
+    toolButton:Hide()
+
     local sub = UI.Text(panel, "", { font = "GameFontHighlight", justify = "CENTER" })
     sub:SetPoint("TOP", ribbon, "BOTTOM", 0, 2)
     sub:SetTextColor(1, 0.92, 0.7)
@@ -229,6 +239,9 @@ UI:RegisterPanel("lobby", nil, function(container)
         ribbon:SetText(entry.name)
 
         local isHost = s:IsHost()
+        local tool = s.def and s.def.lobbyTool
+        toolButton:SetShown(isHost and tool ~= nil)
+        if tool then toolButton:SetText(tool.label) end
         announceButton:SetShown(isHost and s.open == true)
         inviteCard.heading:SetText(s.open and "1. Gather players" or "1. Invite players")
         inviteCard:SetShown(isHost)

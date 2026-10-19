@@ -60,6 +60,7 @@ local defaults = {
         schemaVersion = 0,
         bingoLog = {},
         ledger = {},              -- gold mode debts (see Core/Ledger.lua)
+        triviaQuestions = {},     -- your own Trivia questions: { q = "...", a = { right, wrong, wrong, wrong } }
     },
     profile = {
         theme = "auto",           -- "auto" | "Horde" | "Alliance" | "Neutral"

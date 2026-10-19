@@ -39,8 +39,8 @@ GG.CATALOG = {
       icon = "Interface\\Icons\\INV_Misc_Coin_17",       desc = "Texas Hold'em with chips. Bluff the goblins!" },
     { id = "liarsdice",   addon = "GoblinGames_LiarsDice",   name = "Liar's Dice",   min = 2, max = 6, practice = true,
       icon = "Interface\\Icons\\INV_Misc_Dice_01",       desc = "Bid on hidden dice, or call Liar!" },
-    { id = "trivia",      addon = "GoblinGames_Trivia",      name = "Trivia",        min = 1, max = 1000,
-      icon = "Interface\\Icons\\INV_Misc_Book_09",       desc = "Fastest correct lore answer scores." },
+    { id = "trivia",      addon = "GoblinGames_Trivia",      name = "Trivia",        min = 2, max = 40, practice = true, open = true,
+      icon = "Interface\\Icons\\INV_Misc_Book_09",       desc = "WoW quiz night. Fastest right answer scores!" },
 }
 
 local byId = {}

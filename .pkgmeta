@@ -15,6 +15,7 @@
 #   GoblinGames_Blackjack/
 #   GoblinGames_Poker/
 #   GoblinGames_LiarsDice/
+#   GoblinGames_Trivia/
 #
 # When you add a game module, add its folder here too.
 
@@ -31,6 +32,7 @@ move-folders:
   GoblinGames/GoblinGames_Blackjack: GoblinGames_Blackjack
   GoblinGames/GoblinGames_Poker: GoblinGames_Poker
   GoblinGames/GoblinGames_LiarsDice: GoblinGames_LiarsDice
+  GoblinGames/GoblinGames_Trivia: GoblinGames_Trivia
 
 # Libraries are committed under GoblinGames/Libs, so no externals are needed.
 

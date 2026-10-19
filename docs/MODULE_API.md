@@ -79,6 +79,12 @@ arrive as `"1"` and `"0"`, and `nil` arrives as `""`. Local delivery (the host's
 own moves, practice games) uses the same rule, so code that works locally also
 works over the network.
 
+### Optional: a lobby tool button
+
+`lobbyTool = { label = "Edit questions", onClick = function(session) end }`
+adds one button for the host under "How to play" in the lobby (Trivia uses it
+for its question editor).
+
 ### Optional: who's actually playing
 
 `IsPlaying(session, name) -> bool`: return false for someone who runs the game

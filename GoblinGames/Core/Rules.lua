@@ -136,12 +136,17 @@ GG.RULES = {
 
     trivia = {
         title = "Trivia",
-        intro = "Warcraft lore questions. Fastest correct answer scores.",
+        intro = "A World of Warcraft quiz. The faster your right answer, the more it's worth!",
         sections = {
-            { "Playing", "A question appears for everyone. Pick your answer quickly: the first correct answer gets the most points." },
-            { "Winning", "Highest score after the last question wins." },
+            { "Answering", "Each question has four answers. Click one before the fuse burns down. Your first click is final!" },
+            { "Points", "The fastest right answer scores 3 points, the second 2, and every other right answer 1. Wrong or too slow: nothing." },
+            { "The reveal", "After each question the right answer lights up green, and the scoreboard shows who got it." },
+            { "Winning", "Most points after the last question wins." },
+            { "Hosting", "The host is the quizmaster and picks the number of questions, the time, the topic and the question set. By default the quizmaster doesn't answer (their game knows the answers), but for friendly games they can join in. Press Announce to guild! to invite everyone; latecomers can join between questions." },
+            { "Your own questions", "Type /gg questions, or press Edit questions in the Trivia lobby, to write your own: a question, the right answer and three wrong ones. Great for guild in-jokes!" },
         },
     },
+
 }
 
 --- Build the rules text for a game as one formatted string.
