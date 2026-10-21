@@ -49,32 +49,41 @@ def lerp(a, b, t):
 
 
 # ---------------------------------------------------------------------------
-# Logo, goblin head, coin (from SVG)
+# Coins, the emblem and the CurseForge logo
 # ---------------------------------------------------------------------------
-def make_logo():
-    svg = open(os.path.join(ART, "logo.svg")).read()
-    # CurseForge project logo (upload this one on the website).
-    svg_to_image(svg, 512).save(os.path.join(ART, "curseforge-logo.png"))
-    # In-game copy for the window header.
-    save_tga(svg_to_image(svg, 256), "Logo")
-
-    # The goblin's head alone: the mascot and the minimap icon.
-    defs = re.search(r"<defs>.*?</defs>", svg, re.S).group(0)
-    face = re.search(r"<!-- Ears -->.*?(?=<!-- Die)", svg, re.S).group(0)
-    # Wide crop with the ear tips (256x128), and a square face crop for icons.
-    wide = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-28 52 568 284">' + defs + face + "</svg>")
-    png = cairosvg.svg2png(bytestring=wide.encode(), output_width=256, output_height=128)
-    save_tga(Image.open(io.BytesIO(png)).convert("RGBA"), "GoblinHead")
-    square = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="112 52 288 288">' + defs + face + "</svg>")
-    save_tga(svg_to_image(square, 64), "GoblinFace")
-
-    coin = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 80 80">' + defs +
+def coin_svg(label, size_text):
+    """A gold coin with dark-gold lettering (our own art)."""
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 80 80">'
+            '<defs><radialGradient id="gold" cx="35%%" cy="30%%" r="80%%">'
+            '<stop offset="0" stop-color="#fff3b0"/><stop offset="0.45" stop-color="#f2c447"/>'
+            '<stop offset="1" stop-color="#b9821c"/></radialGradient></defs>'
             '<circle r="36" fill="url(#gold)" stroke="#7a4f0c" stroke-width="5"/>'
-            '<circle r="25" fill="none" stroke="#9c6a12" stroke-width="3"/>'
-            '<path d="M-14 -20 Q-4 -26 4 -20" stroke="#fff6c0" stroke-width="5" fill="none" stroke-linecap="round"/>'
-            '<text x="0" y="13" text-anchor="middle" font-family="Luckiest Guy" font-size="38" fill="#7a4f0c">G</text>'
-            "</svg>")
-    save_tga(svg_to_image(coin, 64), "Coin")
+            '<circle r="27" fill="none" stroke="#9c6a12" stroke-width="3"/>'
+            '<path d="M-16 -22 Q-5 -28 5 -22" stroke="#fff6c0" stroke-width="4" fill="none" stroke-linecap="round"/>'
+            '<text x="0" y="%d" text-anchor="middle" font-family="Luckiest Guy" font-size="%d" fill="#7a4f0c">%s</text>'
+            "</svg>") % (int(size_text * 0.36), size_text, label)
+
+
+def make_logo():
+    """Zifix asked for no goblin pictures: the addon's mark is just the name.
+    Coin: a gold "G" coin (stakes, chips). Emblem: a gold "GG" coin used as
+    the addon icon (minimap button, addon list, card backs, Bingo's free
+    space). curseforge-logo.png: the emblem with the name, for the website."""
+    save_tga(svg_to_image(coin_svg("G", 38), 64), "Coin")
+    save_tga(svg_to_image(coin_svg("GG", 30), 64), "Emblem")
+
+    font = os.path.join(MEDIA, "LuckiestGuy-Regular.ttf")
+    logo = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+    d = ImageDraw.Draw(logo)
+    d.rounded_rectangle([8, 8, 503, 503], radius=60, fill=(62, 34, 18, 255), outline=(222, 176, 70, 255), width=10)
+    d.rounded_rectangle([30, 30, 481, 481], radius=44, outline=(150, 100, 40, 255), width=4)
+    emblem = svg_to_image(coin_svg("GG", 30), 240)
+    logo.alpha_composite(emblem, (136, 48))
+    f1 = ImageFont.truetype(font, 96)
+    for text, y, col in (("GOBLIN", 336, (255, 122, 82)), ("GAMES", 430, (255, 242, 204))):
+        d.text((256 + 4, y + 6), text, font=f1, fill=(0, 0, 0, 160), anchor="mm")
+        d.text((256, y), text, font=f1, fill=col + (255,), anchor="mm", stroke_width=4, stroke_fill=(40, 20, 8, 255))
+    logo.save(os.path.join(ART, "curseforge-logo.png"))
 
 
 # ---------------------------------------------------------------------------
@@ -425,10 +434,10 @@ def make_cards():
             x = xx + off
             if x < W - 16:
                 cd.polygon([(x, yy - 4), (x + 4, yy), (x, yy + 4), (x - 4, yy)], fill=(160, 44, 34, 255))
-    # goblin badge in the middle
-    head = Image.open(os.path.join(MEDIA, "GoblinFace.tga")).convert("RGBA").resize((70, 70), Image.LANCZOS)
+    # the gold "GG" emblem in the middle
+    emblem = Image.open(os.path.join(MEDIA, "Emblem.tga")).convert("RGBA").resize((70, 70), Image.LANCZOS)
     cd.ellipse([W / 2 - 40, H / 2 - 40, W / 2 + 40, H / 2 + 40], fill=(60, 14, 10, 255), outline=(222, 176, 70, 255), width=4)
-    card.alpha_composite(head, (int(W / 2 - 35), int(H / 2 - 37)))
+    card.alpha_composite(emblem, (int(W / 2 - 35), int(H / 2 - 35)))
     back.paste(card, (0, 0))
     save_tga(back, "CardBack")
 

@@ -3,7 +3,7 @@
 ## Notes: Play quick games with your party, raid or guild while you wait: queues, raid forming and guild nights.
 ## Author: Zifix
 ## Version: @project-version@
-## IconTexture: Interface\AddOns\GoblinGames\Media\GoblinFace
+## IconTexture: Interface\AddOns\GoblinGames\Media\Emblem
 ## Category: Miscellaneous
 ## X-Curse-Project-ID: 000000
 ## X-Website: https://github.com/ZifixSempi/goblingames

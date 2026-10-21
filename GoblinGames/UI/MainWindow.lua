@@ -3,11 +3,11 @@
 
   The main window, laid out like a goblin's tavern table:
 
-     (LOGO)  Goblin Games                    [Games][Your Game][Stats][Settings]  X
+     Goblin Games                            [Games][Your Game][Stats][Settings]  X
      +-------------------------------------------------------------------------+
      |                         content panel                                   |
      +-------------------------------------------------------------------------+
-     (goblin) "speech bubble with what to do next"             [action buttons]
+     "speech bubble with what to do next"                      [action buttons]
 
   Panels register themselves with UI:RegisterPanel(name, tabLabel, build) and
   are built the first time the window opens. A panel can put its buttons in
@@ -121,18 +121,9 @@ local function BuildWindow()
     header:SetPoint("TOPRIGHT", -16, -16)
     header:SetHeight(86)
 
-    -- Logo badge, poking out of the top-left corner and bobbing gently.
-    local logoHolder = CreateFrame("Frame", nil, border)
-    logoHolder:SetSize(124, 124)
-    logoHolder:SetPoint("TOPLEFT", -34, 36)
-    logoHolder:SetFrameLevel(border:GetFrameLevel() + 5)
-    local logo = logoHolder:CreateTexture(nil, "OVERLAY")
-    logo:SetTexture(UI.MEDIA .. "Logo")
-    logo:SetAllPoints()
-    UI.AddBob(logo, 3, 1.6)
-
-    local title = UI.Text(frame, "Goblin Games", { fancy = true, size = 34 })
-    title:SetPoint("TOPLEFT", 100, -26)
+    -- The name is the logo: big lettering in the top-left corner.
+    local title = UI.Text(frame, "Goblin Games", { fancy = true, size = 38 })
+    title:SetPoint("TOPLEFT", 30, -24)
     frame.title = title
     local tagline = UI.Text(frame, "", { font = "GameFontHighlight" })
     -- Sits to the right of the title, clear of the tabs below.

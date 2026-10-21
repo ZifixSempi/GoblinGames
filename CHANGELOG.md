@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Look: no more goblin pictures
+
+- The goblin logo badge is gone: the window's top-left corner now just says **Goblin Games** in big lettering.
+- The goblin mascot is gone too. His speech bubble stays in the bottom-left corner, still telling you what to do on every screen.
+- A gold "GG" coin is the new addon icon (minimap button, addon list, card backs, Bingo's free space and the How to play sheet).
+- New CurseForge logo: the GG coin with the name.
+
+
 ### Milestone 10: Trivia (all 10 games done!)
 
 - New game: **Trivia** for 2-40: a World of Warcraft quiz with 101 built-in questions about lore, places and the game itself.

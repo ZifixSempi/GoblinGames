@@ -1,9 +1,8 @@
 --[[----------------------------------------------------------------------------
   GoblinGames/UI/Mascot.lua
 
-  Grizzle, the goblin in the bottom-left corner of the window. He tells you
-  what to do on every screen, so nobody has to guess what a button is for,
-  and he has opinions. Click him for more.
+  The hint bubble in the bottom-left corner of the window. It tells you what
+  to do on every screen, so nobody has to guess what a button is for.
 
   Panels call UI:Say("text") when they show or when something changes.
 ------------------------------------------------------------------------------]]
@@ -12,48 +11,22 @@ local _, GG = ...
 
 local UI = GG.UI
 
-local QUIPS = {
-    "Psst. The Training Dummy cheats. Probably.",
-    "Every game here is free. Suspicious, I know.",
-    "I once lost a zeppelin at Tic-Tac-Toe. Long story.",
-    "Time is money, friend! ...But this one's on the house.",
-    "Win or lose, I still take a cut. Kidding! Mostly.",
-    "Rumour has it card games are next. Rumours are my business.",
-    "B-4! ...Before what? Nobody ever tells me.",
-    "In Deathroll, the house always wins. I am the house.",
-    "Click me again. Go on. I dare ya.",
-}
+local bubble, lastSaid
 
-local mascot, bubble, lastSaid
-
+--- The hint bubble in the bottom-left corner of the window. (There used to be
+--- a goblin mascot here; Zifix preferred no goblin pictures, so it's just the
+--- bubble now.)
 function UI:BuildMascot(window)
-    local holder = CreateFrame("Button", nil, window)
-    holder:SetSize(128, 64)
-    holder:SetPoint("BOTTOMLEFT", 22, 18)
-    holder:SetFrameLevel(window:GetFrameLevel() + 30)
-    local head = holder:CreateTexture(nil, "ARTWORK")
-    head:SetTexture(UI.MEDIA .. "GoblinHead")
-    head:SetAllPoints()
-    UI.AddBob(head, 3, 1.1)
-    UI.AddBounce(holder, 1.15)
-    holder:SetScript("OnClick", function(self)
-        self.bounce:Play()
-        GG.Theme:PlaySound("click")
-        local line
-        repeat line = QUIPS[math.random(#QUIPS)] until line ~= lastSaid or #QUIPS < 2
-        UI:Say(line, true)
-    end)
-    mascot = holder
-
     bubble = UI.Bubble(window)
-    bubble:SetPoint("LEFT", holder, "RIGHT", 12, 4)
-    bubble:SetSize(300, 62)
+    bubble:SetPoint("BOTTOMLEFT", 28, 22)
+    bubble:SetSize(440, 58)
     bubble:SetFrameLevel(window:GetFrameLevel() + 30)
+    bubble.tail:Hide()
     UI.AddPopIn(bubble)
 end
 
---- Make the goblin say something. `quip` lines are temporary: after a few
---- seconds he goes back to the panel's instructions.
+--- Show a hint. `quip` lines are temporary: after a few seconds the bubble
+--- goes back to the panel's instructions.
 function UI:Say(text, quip)
     if not bubble then return end
     if not quip then self.instruction = text end

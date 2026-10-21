@@ -152,7 +152,7 @@ UI:RegisterPanel("lobby", nil, function(container)
                 GG.Theme:SetCrest(row.crest, item.faction)
                 row.crest:SetDesaturated(false)
             else
-                row.crest:SetTexture(UI.MEDIA .. "GoblinFace")
+                row.crest:SetTexture(UI.MEDIA .. "Emblem")
                 row.crest:SetDesaturated(true)
             end
             row.name:SetText(item.label)

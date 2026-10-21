@@ -54,7 +54,7 @@ local function Build()
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetSize(21, 21)
     icon:SetPoint("TOPLEFT", 6, -5)
-    icon:SetTexture(UI.MEDIA .. "GoblinFace")
+    icon:SetTexture(UI.MEDIA .. "Emblem")
 
     local border = button:CreateTexture(nil, "OVERLAY")
     border:SetSize(53, 53)

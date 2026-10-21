@@ -2,7 +2,7 @@
   GoblinGames/UI/InvitePopup.lua
 
   "Bob wants to play Tic-Tac-Toe!" A parchment note at the top of the screen,
-  with the goblin peeking over it.
+  with the inviter's crest.
 
   Why not Blizzard's StaticPopup? StaticPopups are shared with the default UI
   (group invites, release spirit ...), and addons adding their own
@@ -36,13 +36,6 @@ local function Build()
     popup:SetScript("OnDragStart", popup.StartMoving)
     popup:SetScript("OnDragStop", popup.StopMovingOrSizing)
     UI.NineSlice(popup, UI.MEDIA .. "Parchment", 128, 24, 18)
-
-    -- The goblin peeks over the top edge.
-    local head = popup:CreateTexture(nil, "OVERLAY")
-    head:SetTexture(UI.MEDIA .. "GoblinHead")
-    head:SetSize(112, 56)
-    head:SetPoint("BOTTOM", popup, "TOP", 0, -14)
-    UI.AddBob(head, 3, 0.8)
 
     popup.crest = popup:CreateTexture(nil, "ARTWORK")
     popup.crest:SetSize(44, 44)

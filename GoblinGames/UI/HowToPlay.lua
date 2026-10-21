@@ -31,7 +31,7 @@ local function Build()
     table.insert(UISpecialFrames, "GoblinGamesRulesFrame") -- Escape closes it
 
     local head = sheet:CreateTexture(nil, "OVERLAY")
-    head:SetTexture(UI.MEDIA .. "GoblinFace")
+    head:SetTexture(UI.MEDIA .. "Emblem")
     head:SetSize(48, 48)
     head:SetPoint("TOPLEFT", 16, -12)
 

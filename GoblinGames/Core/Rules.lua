@@ -17,7 +17,7 @@ GG.RULES = {
         sections = {
             { "Starting a game", "Go to the Games tab and pick a game card.\n- |cff1f7a12Play with friends|r opens a lobby. Invite people from your group, your target, or anyone by name.\n- |cff1f7a12Practice|r plays against the Training Dummy, just you." },
             { "Joining a game", "When someone invites you, a note pops up at the top of your screen. Press |cff1f7a12Let's play!|r, or type |cffa51d12/gg accept|r." },
-            { "During a game", "The |cff1f7a12Your Game|r tab glows when it's your turn. The fuse at the top is your turn timer; let it run out and you're out of the game.\nGrizzle (the goblin in the corner) always tells you what to do next." },
+            { "During a game", "The |cff1f7a12Your Game|r tab glows when it's your turn. The fuse at the top is your turn timer; let it run out and you're out of the game.\nThe speech bubble in the bottom corner always tells you what to do next." },
             { "Commands", "/gg  open or close the window\n/gg practice <game>  play the Training Dummy\n/gg accept / decline  answer the newest invite\n/gg rules <game>  show these rules\n/gg who  see who in your group or guild has the addon" },
         },
     },
@@ -73,7 +73,7 @@ GG.RULES = {
             { "Got any?", "If they have that rank, they hand over every one of them and you go again. If not: Go Fish! You draw from the pond. Draw the rank you asked for and you go again; otherwise the turn passes." },
             { "Empty hands", "Run out of cards and you draw one from the pond at the start of your turn. If nobody else has cards to ask, you just draw one and pass." },
             { "Winning", "When the pond is empty and no more pairs can be made by asking, the game ends. Pairs still in anyone's hand are laid down for them, and whoever has the most pairs wins. Ties share the win." },
-            { "Tips", "With only one opponent they're picked for you. Hover over a player to see their pairs. Run out of time and the goblin lays your pairs and asks for you, at random!" },
+            { "Tips", "With only one opponent they're picked for you. Hover over a player to see their pairs. Run out of time and the game lays your pairs and asks for you, at random!" },
         },
     },
 
@@ -87,7 +87,7 @@ GG.RULES = {
             { "Goblin rules", "On by default (the host can switch to Classic in the lobby):\n  2: the next player draws 2 cards and misses their turn.\n  Q: the next player is skipped.\n  A: reverse the play order. With two players, you go again." },
             { "Last card!", "When someone is down to one card, their seat flashes LAST CARD!" },
             { "Winning", "The first player to play their last card wins. If the draw pile and the discard pile both run out and nobody can play, the fewest cards wins." },
-            { "Out of time?", "The goblin plays a matching card for you, or draws and passes." },
+            { "Out of time?", "The game plays a matching card for you, or draws and passes." },
         },
     },
 
@@ -130,7 +130,7 @@ GG.RULES = {
             { "LIAR!", "Think the last bid is too high? Call LIAR! Everyone's dice are shown and counted. At least that many: the caller loses a die. Fewer: the bidder was lying and loses a die." },
             { "Next round", "The loser starts the next round. Lose your last die and you're out. The last player with dice wins." },
             { "Tips", "Your dice that match the current bid glow. On average, a third of the other dice match any face when ones are wild (a sixth when they aren't)." },
-            { "Out of time?", "The goblin makes the smallest possible bid for you." },
+            { "Out of time?", "The game makes the smallest possible bid for you." },
         },
     },
 

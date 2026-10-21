@@ -297,6 +297,7 @@ function UI.Bubble(parent)
     tail:SetTexture(UI.MEDIA .. "BubbleTail")
     tail:SetSize(20, 20)
     tail:SetPoint("RIGHT", f, "LEFT", 4, -6)
+    f.tail = tail
     local fs = UI.Text(f, "", { ink = true, font = "GameFontHighlight" })
     fs:SetPoint("TOPLEFT", 14, -10)
     fs:SetPoint("BOTTOMRIGHT", -14, 10)
